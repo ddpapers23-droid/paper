@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Use when the user invokes `/setup`, asks to configure the academic-research plugin, add or rotate API keys (Zotero, Elsevier, WoS, Semantic Scholar, Wiley TDM, OpenAlex), register MCP servers, or patch permission rules. Also fires when another academic-research skill (zotero-operations, systematic-review, fact-check, critic-loop) reports `NOT CONFIGURED` on its pre-flight check.
+description: Use when the user invokes `/setup`, asks to configure the academic-research plugin, add or rotate API keys (Zotero, Elsevier, WoS, Semantic Scholar, Wiley TDM, OpenAlex), register MCP servers, or patch permission rules. Also fires when another academic-research skill (zotero-operations, systematic-review, fact-check, critic-loop) reports `NOT CONFIGURED` on its pre-flight check. Trigger phrases "/setup", "configure the plugin", "add API key", "rotate API key", "set up the plugin", "register MCP".
 ---
 
 # setup

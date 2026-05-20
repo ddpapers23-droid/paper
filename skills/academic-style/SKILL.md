@@ -1,6 +1,6 @@
 ---
 name: academic-style
-description: Use when drafting or editing academic prose — topic sentences, paragraph structure, APA-style citations, active voice, tense, hedging conventions, term definitions. Fires eagerly on any .qmd / .Rmd / .md / .tex file in an academic-research project. Do NOT use for the revision workflow — use `manuscript-revision` + `/critic-loop`. Do NOT use for factual or citation accuracy — use `grounded-citations` / `empirical-integrity` / `fact-check`.
+description: Use when drafting or editing academic prose — topic sentences, paragraph structure, APA-style citations, active voice, tense, hedging conventions, term definitions. Applies to any .qmd / .Rmd / .md / .tex in an academic project. Trigger phrases "edit the prose", "improve the writing", "academic style", "active voice", "hedging". Do NOT use for the revision workflow — use `manuscript-revision` + `/critic-loop`. Do NOT use for factual or citation accuracy — use `grounded-citations` / `empirical-integrity` / `fact-check`.
 ---
 
 # Academic style
