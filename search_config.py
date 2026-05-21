@@ -180,5 +180,5 @@ SEARCH_HITS: dict[str, int | None] = {
     "semantic_scholar":  None,
     "pubmed":            None,  # fill after manual search + dedup
     "embase":            None,
-    "cochrane":          None,
+    "cochrane":          0,
 }
