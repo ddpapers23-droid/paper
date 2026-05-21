@@ -102,14 +102,45 @@ def _parse_pubmed_nbib(path: Path) -> list[dict]:
     return records
 
 
-def _build_combined_records() -> list[dict]:
-    """Merge search CSV + PubMed export, deduplicate by DOI."""
-    rows: list[dict] = []
-    seen_dois: set[str] = set()
+def _parse_ris(path: Path) -> list[dict]:
+    """Parse a RIS file (Web of Science / Embase / Scopus export)."""
+    records: list[dict] = []
+    current: dict = {}
+    with open(path, encoding="utf-8-sig") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            tag = line[:4].rstrip()
+            val = line[6:].strip() if len(line) > 6 else ""
+            if tag == "TY":
+                if current:
+                    records.append(current)
+                current = {"db": path.stem}
+            elif tag == "TI":
+                current["title"] = val
+            elif tag == "AB":
+                current["abstract"] = val
+            elif tag == "AU" and "authors" not in current:
+                current["authors"] = val
+            elif tag == "DO":
+                current.setdefault("doi", val.lower())
+            elif tag == "PY":
+                current.setdefault("year", val[:4])
+            elif tag in ("T2", "JO", "JA"):
+                current.setdefault("source", val)
+            elif tag == "ER":
+                if current:
+                    records.append(current)
+                current = {}
+    if current:
+        records.append(current)
+    return records
 
-    for r in _load_search_csv():
+
+def _add_records(rows: list[dict], seen_dois: set[str],
+                 new_records: list[dict], fallback_prefix: str) -> None:
+    for r in new_records:
         doi = (r.get("doi") or "").strip().lower()
-        key = doi or f"oa_{len(rows)}"
+        key = doi or f"{fallback_prefix}_{len(rows)}"
         if doi and doi in seen_dois:
             continue
         if doi:
@@ -123,6 +154,14 @@ def _build_combined_records() -> list[dict]:
             "doi": doi,
             "abstract": r.get("abstract", ""),
         })
+
+
+def _build_combined_records() -> list[dict]:
+    """Merge all source files, deduplicate by DOI."""
+    rows: list[dict] = []
+    seen_dois: set[str] = set()
+
+    _add_records(rows, seen_dois, _load_search_csv(), "oa")
 
     pubmed_path = _SCREENING / "pubmed_export.nbib"
     if pubmed_path.exists():
@@ -143,6 +182,11 @@ def _build_combined_records() -> list[dict]:
                 "doi": doi,
                 "abstract": r.get("abstract", ""),
             })
+
+    for ris_file in sorted(_SCREENING.glob("*.ris")):
+        prefix = ris_file.stem
+        _add_records(rows, seen_dois, _parse_ris(ris_file), prefix)
+        print(f"  Loaded {ris_file.name}")
 
     return rows
 

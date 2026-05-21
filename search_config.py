@@ -184,7 +184,7 @@ COCHRANE_QUERY = (
 
 SEARCH_HITS: dict[str, int | None] = {
     "scopus":            None,  # fill after running search.py
-    "wos":               None,
+    "wos":               138,   # searched 2026-05-21
     "openalex":          None,
     "semantic_scholar":  None,
     "pubmed":            73,    # searched 2026-05-21
