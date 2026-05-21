@@ -188,6 +188,6 @@ SEARCH_HITS: dict[str, int | None] = {
     "openalex":          None,
     "semantic_scholar":  None,
     "pubmed":            73,    # searched 2026-05-21
-    "embase":            None,
+    "embase":            68,    # searched 2026-05-21
     "cochrane":          0,
 }
