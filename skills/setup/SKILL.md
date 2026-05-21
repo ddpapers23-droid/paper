@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Use when the user invokes `/setup`, asks to configure the academic-research plugin, add or rotate API keys (Zotero, Elsevier, WoS, Semantic Scholar, Wiley TDM, OpenAlex), register MCP servers, or patch permission rules. Also fires when another academic-research skill (zotero-operations, systematic-review, fact-check, critic-loop) reports `NOT CONFIGURED` on its pre-flight check. Trigger phrases "/setup", "configure the plugin", "add API key", "rotate API key", "set up the plugin", "register MCP".
+description: Use when the user invokes `/setup`, asks to configure the academic-research plugin, add or rotate API keys (Zotero, Elsevier, WoS, Semantic Scholar, Wiley TDM, OpenAlex), register MCP servers, or patch permission rules. Also fires when another academic-research skill (zotero-operations, systematic-review, fact-check, critic-loop) reports `NOT CONFIGURED` on its pre-flight check. Trigger phrases "/setup", "configure the plugin", "add API key", "rotate API key", "set up the plugin", "register MCP". Do NOT use for citation, manuscript, or research tasks — use the appropriate research skill instead.
 ---
 
 # setup
@@ -107,6 +107,28 @@ problem:
   academic-research skill works without it. The wizard's summary lists
   the install and registration commands; run them and re-run the
   wizard.
+
+## Key rotation and re-running the wizard
+
+The wizard is **idempotent**: re-running it is always safe and is the
+correct way to rotate or add keys, register a new MCP server, or check
+what is currently configured.
+
+**To rotate a key:** re-run the wizard. At each prompt it shows the
+current value (masked). Enter a new value to replace it; press Enter
+to keep the existing one. The config file is updated atomically.
+
+**To add a missing key:** same — re-run. The wizard covers every key
+in one pass; leave prompts empty for keys you don't have yet.
+
+**To check what's configured:** re-run the wizard — it prints a
+summary of every key's status (set / not set) and whether each MCP
+server is registered and reachable. This is the only safe way to
+inspect your key status: the config file is denied to the Read tool
+and to `cat` / `grep` to prevent keys from entering the conversation.
+
+**After rotation:** no restart needed for pipeline scripts — they read
+config at startup. Re-run any script that was mid-flight.
 
 ## Red flags
 

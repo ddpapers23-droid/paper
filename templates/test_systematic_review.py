@@ -72,9 +72,8 @@ CODED_PAPERS     = os.path.join(PROJECT_ROOT, "analysis/results/coded_papers.csv
 # `getattr(...)`). Test 9 verifies the screening logs match the config.
 SCREENING_CONFIG = os.path.join(PROJECT_ROOT, "screening_config.py")
 
-# Legacy-layout scripts kept for projects that copied the screening
-# scripts into `scripts/` alongside the plugin invocation. Test 8
-# silently passes when neither copy exists.
+# Modern projects invoke plugin scripts by path — these paths should NOT
+# exist. Test 8 fails if it finds local copies (outdated project layout).
 ABSTRACT_SCRIPT = os.path.join(PROJECT_ROOT, "scripts/abstract_screen.py")
 FULLTEXT_SCRIPT = os.path.join(PROJECT_ROOT, "scripts/fulltext_code.py")
 
@@ -160,16 +159,26 @@ def test_coded_count_matches_fulltext_includes() -> None:
 
 
 def test_temperature_zero_pinned() -> None:
-    """Every Claude API call must have temperature=0 — reproducibility invariant.
+    """Screening scripts must pin temperature=0 for reproducibility.
 
-    Checks any local copy of `abstract_screen.py` / `fulltext_code.py`
-    (legacy layout). Projects that invoke the plugin scripts by path get
-    this invariant enforced by the plugin's own test suite, so this test
-    silently passes when no local copies exist.
+    Modern projects invoke the plugin scripts by path
+    (`${CLAUDE_PLUGIN_ROOT}/scripts/pipelines/abstract_screen.py` etc.)
+    and should NOT have local copies under `scripts/`. Finding a local
+    copy signals an outdated project layout — remove it and invoke the
+    plugin script by path instead. If a local copy is legitimately kept,
+    it must also pin temperature=0.
     """
     for script in (ABSTRACT_SCRIPT, FULLTEXT_SCRIPT):
         if not os.path.exists(script):
             continue
+        raise AssertionError(
+            f"Outdated project layout: {script} is a local copy of a "
+            f"plugin pipeline script. Modern projects invoke the plugin "
+            f"script by path: "
+            f"${{CLAUDE_PLUGIN_ROOT}}/scripts/pipelines/{os.path.basename(script)}. "
+            f"Remove the local copy or update ABSTRACT_SCRIPT / FULLTEXT_SCRIPT "
+            f"in this file to point to a project-owned variant (not a plugin copy)."
+        )
         with open(script, encoding="utf-8") as f:
             src = f.read()
         ok = (re.search(r'temperature\s*=\s*0\b', src) is not None

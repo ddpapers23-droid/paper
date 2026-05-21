@@ -331,10 +331,10 @@ directory — not checked in because it references machine-local paths).
 
 ## Tier 4 — do if convenient
 
-- **S5** — expand `skills/setup/SKILL.md` (101 lines currently) with
-  guidance on rotating a single API key, re-running the wizard, and
-  auditing what's already configured. The wizard is idempotent but
-  the skill doesn't advertise it.
+- ✓ **S5** — "Key rotation and re-running the wizard" section added to
+  `skills/setup/SKILL.md`: covers rotating, adding, and auditing keys
+  by re-running the idempotent wizard; explains why the config file
+  cannot be read directly.
 - **P6 (near-closed)** — standardize on `http_client.get_json()`
   across all fetchers. Only two direct `session.get()` calls remain
   outside `http_client`, both on non-content paths:
@@ -343,12 +343,12 @@ directory — not checked in because it references machine-local paths).
   [fetchers/browser/connector.py:655](scripts/pipelines/fetchers/browser/connector.py#L655)
   (connector ping). Not worth a dedicated pass; tidy opportunistically
   if touching those files.
-- **P8** — CI guard that fails if `--legacy-browser` flag is removed
-  but `legacy/` directory still exists, or vice versa. Currently a
-  four-item checklist in `legacy/README.md` that nothing enforces.
-- **R4** — IRON RULE tables in long SKILL.mds
-  (`systematic-review/SKILL.md` is >700 lines). Anti-pattern / Why
-  it fails / Correct behaviour rows as an anti-context-rot device.
+- ✓ **P8** — closed as not applicable: `legacy/` directory was already
+  removed from the repo; no CI guard needed.
+- ✓ **R4** — IRON RULE table added to `skills/systematic-review/SKILL.md`
+  just before "Red flags": 8 rows covering hardcoded keys, temperature
+  locking, OpenAlex abstract source, manual counts, config.toml access,
+  improvised scripts, PDF magic-byte check, and predatory-paper handling.
 - **R7 (narrowed)** — port `find_duplicates` detection into
   `audit_zotero_library.py` so the audit report surfaces duplicate
   candidates offline. The merge half is already ported —
@@ -363,31 +363,17 @@ directory — not checked in because it references machine-local paths).
   Jump to coding-relevant sections without reading the whole PDF.
   Requires restructuring the LLM-input pipeline (currently sends the
   whole PDF up to a soft cap). Tier 3 work in practice.
-- **S7** — add missing `Trigger phrases:` blocks to three skills.
-  CLAUDE.md says every procedural skill follows the shape
-  "Use when … + Trigger phrases: … + Do NOT use for X". The
-  description lines in
-  [skills/academic-style/SKILL.md](skills/academic-style/SKILL.md),
-  [skills/empirical-integrity/SKILL.md](skills/empirical-integrity/SKILL.md),
-  and [skills/setup/SKILL.md](skills/setup/SKILL.md) lack the
-  `Trigger phrases:` block. Breaking the shape risks wrong-skill
-  triggering. One-line description edit per skill; no body changes
-  needed.
-- **P10** — drop the legacy-layout branch from the
-  `test_systematic_review.py` template. The template defines
-  `ABSTRACT_SCRIPT` / `FULLTEXT_SCRIPT` paths and Test 8 silently
-  passes if neither local copy exists ([templates/test_systematic_review.py:58-65](templates/test_systematic_review.py#L58-L65),
-  [:160-170](templates/test_systematic_review.py#L160-L170)). Now
-  that SR projects invoke plugin scripts by path, the silent-pass
-  branch adds cognitive load without catching anything. Delete the
-  branch or assert-fail if a local copy is found (indicating an
-  outdated project layout).
-- **M1** — add `keywords` to `.claude-plugin/plugin.json` for
-  marketplace search. The manifest currently has only `name`,
-  `version`, `description`, `author`, `license`, `homepage`. An
-  array like `["systematic-review", "zotero", "citations",
-  "manuscript", "critic-loop", "academic"]` would improve
-  discoverability in `/plugin marketplace`.
+- ✓ **S7** — "Do NOT use" delegation rules added to
+  `skills/empirical-integrity/SKILL.md` and `skills/setup/SKILL.md`
+  descriptions (academic-style already had them). All three skills now
+  carry the full "Use when … + Trigger phrases: … + Do NOT use for X"
+  shape required by CLAUDE.md.
+- ✓ **P10** — `test_temperature_zero_pinned` in
+  `templates/test_systematic_review.py` now fails (not silently passes)
+  when a local copy of `abstract_screen.py` / `fulltext_code.py` is
+  found, signalling an outdated project layout. Comment updated.
+- ✓ **M1** — already done: `keywords` array present in
+  `.claude-plugin/plugin.json` since a prior session.
 
 ---
 
