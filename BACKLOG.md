@@ -319,17 +319,13 @@ directory — not checked in because it references machine-local paths).
   become a kitchen-sink.
   Files: [scripts/pipelines/zotero_io.py](scripts/pipelines/zotero_io.py).
 
-- **R10 + R11 (partial)** — finish the OA fallback chain from
-  `openags/paper-search-mcp`. PMC and Unpaywall are already live
-  ([fetchers/pmc.py](scripts/pipelines/fetchers/pmc.py),
-  [fetchers/unpaywall.py](scripts/pipelines/fetchers/unpaywall.py))
-  and [fetchers/\_\_init\_\_.py:62](scripts/pipelines/fetchers/__init__.py#L62)
-  sketches the cascade order. What remains is **CORE** and
-  **Europe PMC** as new `AbstractFetcher` / `PdfFetcher` providers,
-  plus an audit of the cascade ordering in `fetchers/__init__.py`.
-  Each new provider must ship with a matching file under
-  `tests/live/` (enforced by `tests/live/test_live_coverage.py`).
-  Files: [scripts/pipelines/fetchers/](scripts/pipelines/fetchers/).
+- ✓ **R10 + R11** — CORE and Europe PMC added as `AbstractFetcher` /
+  `PdfFetcher` providers (`fetchers/core.py`, `fetchers/europe_pmc.py`).
+  Both registered in the cascade (`abstract_sources` after OpenAlex;
+  `pdf_sources` after Unpaywall). `CORE_API_KEY` KeySpec + `_verify_core`
+  added to wizard.py. Live tests in `test_abstract_endpoints.py`,
+  `test_pdf_endpoints.py`, `test_auth_workflows.py`. Guard maps
+  `_ABSTRACT_ALIAS` / `_PDF_ALIAS` updated.
 
 ---
 

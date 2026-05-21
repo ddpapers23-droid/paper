@@ -82,6 +82,7 @@ class Config:
     wiley_tdm_token: str = ""
     semantic_scholar_api_key: str = ""
     crossref_mailto: str = ""
+    core_api_key: str = ""
 
 
 def _load_config() -> Config:
@@ -93,6 +94,7 @@ def _load_config() -> Config:
             "semantic_scholar", "api_key", env="SEMANTIC_SCHOLAR_API_KEY",
         ),
         crossref_mailto=get("crossref", "mailto", env="CROSSREF_MAILTO"),
+        core_api_key=get("core", "api_key", env="CORE_API_KEY"),
     )
 
 

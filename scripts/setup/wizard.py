@@ -201,6 +201,20 @@ def _verify_crossref_mailto(email: str) -> tuple[bool, str, dict]:
     return True, "format looks valid (not contacted)", {}
 
 
+def _verify_core(key: str) -> tuple[bool, str, dict]:
+    status, _, err = _http_json(
+        "https://api.core.ac.uk/v3/search/works?q=test&limit=1",
+        headers={"Authorization": f"Bearer {key}"},
+    )
+    if status == 0:
+        return False, f"could not reach api.core.ac.uk ({err}) — saved anyway", {}
+    if status in (401, 403):
+        return False, f"CORE rejected the key (HTTP {status})", {}
+    if status != 200:
+        return False, f"CORE returned HTTP {status}", {}
+    return True, "key valid; CORE Aggregate API reachable", {}
+
+
 def _verify_none(_key: str) -> tuple[bool, str, dict]:
     """Used for keys we cannot cheaply verify (e.g. Wiley TDM, OpenAlex paid)."""
     return True, "no inline check — will be exercised by pipeline scripts on first use", {}
@@ -377,6 +391,23 @@ KEYS: tuple[KeySpec, ...] = (
         where="https://openalex.org — paid tier only; skip unless you need "
               "high-volume PDF retrieval.",
         verify=_verify_none,
+    ),
+    KeySpec(
+        "CORE_API_KEY", "core", "api_key",
+        "CORE Aggregate API key",
+        required=False, hidden=True,
+        what="CORE (https://core.ac.uk/) is the world's largest aggregator of "
+             "open-access research papers, indexing millions of full-text works "
+             "from thousands of repositories and journals. The API provides "
+             "abstracts and direct PDF download URLs at no cost.",
+        used_by="systematic-review (CORE abstract and PDF cascade — late-stage "
+                "fallback after Crossref, Semantic Scholar, Scopus, WoS, "
+                "ScienceDirect, OpenAlex, Unpaywall).",
+        impact="Unauthenticated requests still work but are limited to "
+               "~10 req/min. A free API key raises the limit to 100 req/min. "
+               "Other cascade tiers are unaffected.",
+        where="https://core.ac.uk/services/api — free to register.",
+        verify=_verify_core,
     ),
 )
 

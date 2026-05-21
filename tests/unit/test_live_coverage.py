@@ -152,7 +152,9 @@ def _fetcher_names(base_cls: str) -> list[tuple[str, str]]:
 # (e.g. PDF-only sources that inherit PdfFetcher but not AbstractFetcher).
 # Add a new row whenever a new AbstractFetcher subclass is added.
 _ABSTRACT_ALIAS: dict[str, str | None] = {
+    "core": "test_core_abstract",
     "crossref": "test_crossref_abstract",
+    "europe_pmc": "test_europe_pmc_abstract",
     "openalex": "test_openalex_grobid_abstract",
     "sciencedirect": "test_sciencedirect_abstract",
     "scopus": "test_scopus_abstract",
@@ -201,7 +203,9 @@ def test_every_abstract_source_has_a_live_test() -> None:
 # None = explicitly exempt (generic helper / not a standalone source).
 # Add a new row whenever a new PdfFetcher subclass is added.
 _PDF_ALIAS: dict[str, str | None] = {
+    "core": "test_core_pdf_download_url",
     "crossref": "test_crossref_tdm_link_present",
+    "europe_pmc": "test_europe_pmc_pdf",
     "openalex": "test_openalex_content_api_returns_pdf_bytes",
     "sciencedirect": "test_elsevier_sciencedirect_reachable",
     "pubmed_central": "test_pmc_doi_to_pmcid_resolves",

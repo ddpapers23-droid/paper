@@ -14,7 +14,9 @@ from typing import TYPE_CHECKING, Any, cast
 
 from .base import AbstractFetcher, PdfFetcher, Source
 from .browser import BrowserSource
+from .core import CoreSource
 from .crossref import CrossrefSource
+from .europe_pmc import EuropePmcSource
 from .openalex import OpenAlexSource
 from .pmc import PmcSource
 from .sciencedirect import ScienceDirectSource
@@ -47,6 +49,8 @@ def abstract_sources(
         WosSource(http, config),
         ScienceDirectSource(http, config),
         OpenAlexSource(http, config),
+        CoreSource(http, config),
+        EuropePmcSource(http, config),
     ])
 
 
@@ -75,6 +79,8 @@ def pdf_sources(
         PmcSource(http, config),
         OpenAlexSource(http, config),
         UnpaywallSource(http, config),
+        CoreSource(http, config),
+        EuropePmcSource(http, config),
         WileySource(http, config),
         BrowserSource(http, config),
     ])
@@ -94,7 +100,9 @@ __all__ = [
     "abstract_sources",
     "pdf_sources",
     "BrowserSource",
+    "CoreSource",
     "CrossrefSource",
+    "EuropePmcSource",
     "OpenAlexSource",
     "PmcSource",
     "ScienceDirectSource",

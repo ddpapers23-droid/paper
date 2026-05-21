@@ -136,6 +136,70 @@ def test_unpaywall_returns_pdf_url() -> None:
     assert pdf_url, f"Unpaywall has no PDF URL for DOI {doi}"
 
 
+def test_core_pdf_download_url() -> None:
+    """CORE API returns a downloadUrl for a known OA DOI."""
+    doi = KNOWN_DOIS["core"]
+    query = urllib.parse.quote(f'doi:"{doi}"', safe="")
+    url = f"https://api.core.ac.uk/v3/search/works?q={query}&limit=1"
+    headers: dict[str, str] = {}
+    try:
+        key = require_config("core", "api_key", env="CORE_API_KEY")
+        headers["Authorization"] = f"Bearer {key}"
+    except pytest.skip.Exception:
+        pass  # unauthenticated is acceptable
+    status, body, _ = http_get(url, headers=headers, timeout=30)
+    if status == 0:
+        pytest.skip("Network unreachable for CORE API")
+    assert status == 200, f"CORE API returned {status}"
+    data = json.loads(body)
+    results = data.get("results") or []
+    if not results:
+        pytest.skip(
+            f"CORE has no record for DOI {doi}; update KNOWN_DOIS['core']."
+        )
+    download_url = (results[0].get("downloadUrl") or "").strip()
+    if not download_url:
+        pytest.skip(
+            f"CORE record for {doi} has no downloadUrl. "
+            f"Try a different OA DOI in KNOWN_DOIS['core']."
+        )
+
+
+def test_europe_pmc_pdf() -> None:
+    """Europe PMC PMCID resolves to a PDF for an OA PubMed Central paper."""
+    doi = KNOWN_DOIS["europe_pmc"]
+    query = urllib.parse.quote(f'DOI:"{doi}"', safe="")
+    search_url = (
+        f"https://www.ebi.ac.uk/europepmc/webservices/rest/search"
+        f"?query={query}&resultType=core&format=json&pageSize=1"
+    )
+    status, body, _ = http_get(search_url, timeout=30)
+    if status == 0:
+        pytest.skip("Network unreachable for Europe PMC API")
+    assert status == 200, f"Europe PMC returned {status}"
+    data = json.loads(body)
+    results = (data.get("resultList") or {}).get("result") or []
+    if not results:
+        pytest.skip(
+            f"Europe PMC has no record for DOI {doi}; update KNOWN_DOIS['europe_pmc']."
+        )
+    pmcid = (results[0].get("pmcid") or "").strip()
+    if not pmcid:
+        pytest.skip(
+            f"Europe PMC record for {doi} has no pmcid — not an OA PMC paper. "
+            f"Try a different DOI in KNOWN_DOIS['europe_pmc']."
+        )
+    pdf_url = f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={pmcid}&blobtype=pdf"
+    status, body, _ = http_get(pdf_url, timeout=60)
+    if status == 0:
+        pytest.skip("Network unreachable for Europe PMC PDF endpoint")
+    assert status == 200, f"Europe PMC PDF endpoint returned {status} for {pmcid}"
+    assert body.startswith(b"%PDF-"), (
+        f"Europe PMC did not return a PDF for {pmcid} ({doi}). "
+        f"Body: {classify_non_pdf_body(body)}"
+    )
+
+
 def test_openalex_oa_url_present() -> None:
     """OpenAlex metadata (free, no key) exposes an OA URL for OA papers."""
     doi = KNOWN_DOIS["openalex_oa"]

@@ -61,6 +61,7 @@ class Config:
     wos_api_key_extended: str = ""
     wos_api_key: str = ""
     crossref_mailto: str = ""
+    core_api_key: str = ""
 
 
 def _load_config() -> Config:
@@ -73,6 +74,7 @@ def _load_config() -> Config:
         wos_api_key_extended=get("wos", "expanded_key", env="WOS_API_KEY_EXTENDED"),
         wos_api_key=get("wos", "starter_key", env="WOS_API_KEY"),
         crossref_mailto=get("crossref", "mailto", env="CROSSREF_MAILTO"),
+        core_api_key=get("core", "api_key", env="CORE_API_KEY"),
     )
 
 

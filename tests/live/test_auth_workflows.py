@@ -119,3 +119,10 @@ def test_auth_openalex_placeholder() -> None:
         "OpenAlex paid key has no auth-only endpoint; actual auth "
         "verified by test_openalex_content_api_returns_pdf_bytes."
     )
+
+
+def test_auth_core() -> None:
+    """CORE API key is validated by a lightweight search probe."""
+    key = require_config("core", "api_key", env="CORE_API_KEY")
+    ok, msg, _ = _wizard()._verify_core(key)
+    assert ok, f"CORE auth failed: {msg}"
