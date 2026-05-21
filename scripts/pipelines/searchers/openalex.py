@@ -29,16 +29,18 @@ class OpenAlexSearch(SearchSource):
 
         a_terms = getattr(config, "BLOCK_A_TERMS", None) or []
         b_terms = getattr(config, "BLOCK_B_TERMS", None) or []
+        c_terms = getattr(config, "BLOCK_C_TERMS", None) or []
         if not a_terms and not b_terms:
             return []
 
-        # Build a single ANDed query: (A1 OR A2 ...) AND (B1 OR B2 ...)
-        # Each term is quoted so multi-word phrases stay together.
+        # Build ANDed query across all blocks: (A) AND (B) AND (C ...)
         parts: list[str] = []
         if a_terms:
             parts.append("(" + " OR ".join(f'"{t}"' for t in a_terms) + ")")
         if b_terms:
             parts.append("(" + " OR ".join(f'"{t}"' for t in b_terms) + ")")
+        if c_terms:
+            parts.append("(" + " OR ".join(f'"{t}"' for t in c_terms) + ")")
         query = " AND ".join(parts)
 
         print("  OpenAlex combined: ", end="", flush=True)

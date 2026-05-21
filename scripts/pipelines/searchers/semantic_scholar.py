@@ -42,14 +42,17 @@ class SemanticScholarSearch(SearchSource):
 
         a_terms = getattr(config, "BLOCK_A_TERMS", None) or []
         b_terms = getattr(config, "BLOCK_B_TERMS", None) or []
+        c_terms = getattr(config, "BLOCK_C_TERMS", None) or []
 
         # S2 bulk-search: `|` = OR, `+` = AND, `-` = NOT, quoted phrases.
-        # Build (A1 | A2 ...) + (B1 | B2 ...) to mirror PubMed AND strategy.
+        # Build (A) + (B) + (C) to mirror PubMed three-concept AND strategy.
         parts: list[str] = []
         if a_terms:
             parts.append("(" + " | ".join(f'"{t}"' for t in a_terms) + ")")
         if b_terms:
             parts.append("(" + " | ".join(f'"{t}"' for t in b_terms) + ")")
+        if c_terms:
+            parts.append("(" + " | ".join(f'"{t}"' for t in c_terms) + ")")
         query = " + ".join(parts)
 
         print("  Semantic Scholar combined: ", end="", flush=True)

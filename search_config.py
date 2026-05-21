@@ -106,8 +106,18 @@ BLOCK_B_TERMS = [
     "total hip arthroplasty",
     "knee replacement",
     "hip replacement",
-    "TKA",
-    "THA",
+]
+
+BLOCK_C_TERMS = [
+    "patient-reported outcome",
+    "PROM",
+    "KOOS",
+    "HOOS",
+    "WOMAC",
+    "Oxford Knee Score",
+    "Oxford Hip Score",
+    "EQ-5D",
+    "MCID",
 ]
 
 
