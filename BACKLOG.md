@@ -67,8 +67,9 @@ directory — not checked in because it references machine-local paths).
 
 ### Skills
 
-- **S3** — add an explicit "Companion skills" section to
-  `critic-loop`.
+- **S3** ✓ — add an explicit "Companion skills" section to
+  `critic-loop`. **Done** — added before "Argument parsing" in
+  `skills/critic-loop/SKILL.md`.
   **Why deferred:** the skill body already references
   `empirical-integrity` in prose (five mentions in
   `skills/critic-loop/SKILL.md` — e.g. line 141 on the Step 1 test
@@ -81,8 +82,9 @@ directory — not checked in because it references machine-local paths).
   rule-book), and `manuscript-revision` (doctrine).
   Files: [skills/critic-loop/SKILL.md](skills/critic-loop/SKILL.md).
 
-- **S4** — add reverse cross-link from `manuscript-revision` to
-  `academic-style`.
+- **S4** ✓ — add reverse cross-link from `manuscript-revision` to
+  `academic-style`. **Done** — added to "See also" in
+  `skills/manuscript-revision/SKILL.md`.
   **Why deferred:** `academic-style/SKILL.md:3,22` already delegates
   to `manuscript-revision`; only the reverse direction is missing.
   Users who skip `academic-style` incur extra critic iterations.

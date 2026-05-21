@@ -46,6 +46,23 @@ burns MCP / Zotero quota twice. Use `fact-check` instead of this loop
 when the user wants a focused citation-only pre-submission report
 without the method / argument / expert perspectives.
 
+## Companion skills
+
+- **`manuscript-revision`** — doctrine for this loop. `critic-loop` is
+  the procedure (flags, CLI, agent prompts, file schemas); `manuscript-
+  revision` is the justification (why parallel critics, what each axis
+  covers, what critics must not do). Read it if the loop's shape is
+  unclear to you or to a subagent.
+- **`empirical-integrity`** — governs how numbers enter prose. The Step 1
+  test gate runs `test_empirical_integrity.py`; a failure there is an
+  `empirical-integrity` regression, not a critic issue. Route the fix
+  through that skill. Critics must never be used to hand-type statistics
+  that should come from the pipeline.
+- **`grounded-citations`** — write-time citation rule-book. When a critic
+  flags a weak, unsupported, or missing citation, the fix must go through
+  `grounded-citations`' four-part rule (Zotero-backed BBT key, externalised
+  consultation, claim-supporting source) — not inlined ad-hoc.
+
 ## Argument parsing
 
 Required:

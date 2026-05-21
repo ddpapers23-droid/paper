@@ -90,3 +90,10 @@ typed.
   critic suggests sharpening a statistic, the fix must route through
   the pipeline (inline expression reading `analysis/results/`) — never
   hand-typed. Critics must not be used to bypass this rule.
+- **`academic-style`** — house-style and formatting rule-book. Run it
+  **before** the critic loop, not after. Resolving style issues up front
+  (heading structure, citation format, terminology consistency) prevents
+  the argument critic from flagging the same surface problems on every
+  iteration, which wastes loop iterations on non-substantive edits.
+  `academic-style` delegates back to `manuscript-revision` for
+  substantive revision work; the dependency runs both ways.
