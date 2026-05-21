@@ -155,16 +155,32 @@ def _make_client() -> "anthropic.Anthropic":
     import anthropic
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
+        cfg = Path.home() / ".config/academic-research/config.toml"
         try:
             import tomllib
-            cfg = Path.home() / ".config/academic-research/config.toml"
-            if cfg.exists():
+        except ImportError:
+            try:
+                import tomli as tomllib  # type: ignore[no-redef]
+            except ImportError:
+                tomllib = None  # type: ignore[assignment]
+        if tomllib is None:
+            print(f"  Note: tomllib not available; cannot read {cfg}")
+        elif not cfg.exists():
+            print(f"  Note: config not found at {cfg}")
+        else:
+            try:
                 data = tomllib.loads(cfg.read_text())
                 api_key = data.get("anthropic", {}).get("api_key", "")
-        except Exception:
-            pass
+                if api_key and api_key.startswith("sk-ant-YOURKEY"):
+                    api_key = ""
+                    print(f"  Note: placeholder key found in {cfg} — replace it with your real key")
+            except Exception as exc:
+                print(f"  Note: could not parse {cfg}: {exc}")
     if not api_key:
-        sys.exit("ERROR: ANTHROPIC_API_KEY not set and not found in config.toml")
+        sys.exit(
+            "ERROR: ANTHROPIC_API_KEY not set and not found in config.toml\n"
+            "  Fix: ANTHROPIC_API_KEY=sk-ant-... uv run screening/screen_abstracts.py"
+        )
     return anthropic.Anthropic(api_key=api_key)
 
 
