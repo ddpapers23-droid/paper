@@ -45,3 +45,33 @@ def fulltext_screening_fields(coding_field_names: list[str]) -> list[str]:
     metadata trailers.
     """
     return FULLTEXT_BASE_FIELDS + list(coding_field_names) + FULLTEXT_TRAILING_FIELDS
+
+
+# --- Enrich orchestrator run logs (P7) -----------------------------------
+#
+# Each enrich_*.py writes a per-run CSV log for resume / audit. Defining
+# schemas here (rather than inline in each script) means adding a column
+# is a single edit rather than three. Import with an alias so no call
+# site changes are needed:
+#
+#   from log_schemas import ABSTRACT_LOG_FIELDS as LOG_FIELDS
+
+ABSTRACT_LOG_FIELDS: list[str] = [
+    "run_date", "item_key", "doi", "title", "source", "status",
+]
+
+# Canonical order matches ABSTRACT_LOG_FIELDS (source before status) so
+# both logs are diff-friendly side-by-side. The enrich_pdfs.py inline
+# definition had these swapped; this canonical version fixes that.
+PDF_LOG_FIELDS: list[str] = [
+    "run_date", "item_key", "doi", "title", "source", "status",
+]
+
+# Larger schema: includes Zotero vs Crossref comparison columns so the
+# log can serve as an audit trail for applied / rejected DOI edits.
+DOI_LOG_FIELDS: list[str] = [
+    "run_date", "item_key",
+    "zotero_doi", "zotero_title", "zotero_year",
+    "crossref_doi", "crossref_title", "crossref_authors",
+    "status",
+]

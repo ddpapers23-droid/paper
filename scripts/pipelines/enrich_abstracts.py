@@ -28,7 +28,6 @@ The fetcher priority matches the legacy cascade:
 from __future__ import annotations
 
 import argparse
-import csv
 import os
 import sys
 import threading
@@ -47,11 +46,11 @@ import fetchers  # noqa: E402
 import http_client  # noqa: E402
 import zotero_io  # noqa: E402
 from core.config_loader import get, require  # noqa: E402
+from log_schemas import ABSTRACT_LOG_FIELDS as LOG_FIELDS  # noqa: E402
+from shared_orchestrators import LogManager  # noqa: E402
 
 DEFAULT_LOG_CSV = os.path.join("output", "abstract_fetch_log.csv")
 DEFAULT_CACHE_DIR = os.path.join("output", "fulltext_cache")
-
-LOG_FIELDS = ["run_date", "item_key", "doi", "title", "source", "status"]
 
 
 @dataclass
@@ -77,25 +76,16 @@ def _load_config() -> Config:
     )
 
 
+def _log(path: str) -> LogManager:
+    return LogManager(path, LOG_FIELDS, done_status="updated")
+
+
 def _open_log(path: str):
-    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    is_new = not os.path.exists(path)
-    fh = open(path, "a", newline="", encoding="utf-8")
-    writer = csv.DictWriter(fh, fieldnames=LOG_FIELDS)
-    if is_new:
-        writer.writeheader()
-    return fh, writer
+    return _log(path).open_writer()
 
 
 def _already_done(log_path: str) -> set[str]:
-    if not os.path.exists(log_path):
-        return set()
-    with open(log_path, newline="", encoding="utf-8") as f:
-        return {
-            (r.get("doi") or "").strip().lower()
-            for r in csv.DictReader(f)
-            if r.get("status") == "updated"
-        }
+    return _log(log_path).already_done()
 
 
 def _try_cascade(

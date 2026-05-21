@@ -45,7 +45,6 @@ Write policy:
 from __future__ import annotations
 
 import argparse
-import csv
 import os
 import sys
 from dataclasses import dataclass
@@ -67,16 +66,11 @@ from fetchers.doi_resolver import (  # noqa: E402
     _extract_resolution,
     resolve_doi,
 )
+from log_schemas import DOI_LOG_FIELDS as LOG_FIELDS  # noqa: E402
+from shared_orchestrators import LogManager  # noqa: E402
 
 DEFAULT_LOG_CSV = os.path.join("output", "doi_enrich_log.csv")
 DEFAULT_CACHE_DIR = os.path.join("output", "pdf_cache")
-
-LOG_FIELDS = [
-    "run_date", "item_key",
-    "zotero_doi", "zotero_title", "zotero_year",
-    "crossref_doi", "crossref_title", "crossref_authors",
-    "status",
-]
 
 
 @dataclass
@@ -91,13 +85,7 @@ def _load_config() -> Config:
 
 
 def _open_log(path: str):
-    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    is_new = not os.path.exists(path)
-    fh = open(path, "a", newline="", encoding="utf-8")
-    writer = csv.DictWriter(fh, fieldnames=LOG_FIELDS)
-    if is_new:
-        writer.writeheader()
-    return fh, writer
+    return LogManager(path, LOG_FIELDS).open_writer()
 
 
 # ---------------------------------------------------------------------------

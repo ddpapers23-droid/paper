@@ -93,8 +93,10 @@ directory — not checked in because it references machine-local paths).
   the "before the loop" companion.
   Files: [skills/manuscript-revision/SKILL.md](skills/manuscript-revision/SKILL.md).
 
-- **R9** — document `zotero-mcp-server[scite,semantic]` optional
-  extras in the setup wizard.
+- **R9** ✓ — document `zotero-mcp-server[scite,semantic]` optional
+  extras in the setup wizard. **Done** — `install_note` updated +
+  connected-Zotero hint printed in `_print_mcp_summary`
+  (`scripts/setup/wizard.py`).
   **Why deferred:** users install the base package and never discover
   semantic search or retraction alerts. R5 (done) depends on Scite
   being available — the wizard could install the extra automatically
@@ -106,8 +108,10 @@ directory — not checked in because it references machine-local paths).
 
 ### Scripts
 
-- **P1** — extract shared `LogManager` for the three `enrich_*`
-  orchestrators.
+- **P1** ✓ — extract shared `LogManager` for the three `enrich_*`
+  orchestrators. **Done** — `scripts/pipelines/shared_orchestrators.py`
+  with `LogManager`; all three enrich scripts use it via thin wrappers;
+  12 unit tests in `tests/unit/test_shared_orchestrators.py`.
   **Why deferred:** `core.config_loader` already handles the
   config-loading side (all three scripts import `get` / `require`
   from it). What remains reimplemented in each of
@@ -124,7 +128,10 @@ directory — not checked in because it references machine-local paths).
   tests should drive this — no behaviour change.
   Files: [scripts/pipelines/enrich_abstracts.py](scripts/pipelines/enrich_abstracts.py), [scripts/pipelines/enrich_pdfs.py](scripts/pipelines/enrich_pdfs.py), [scripts/pipelines/enrich_dois.py](scripts/pipelines/enrich_dois.py).
 
-- **P5** — shared credential-check helper for searchers.
+- **P5** ✓ — shared credential-check helper for searchers. **Done
+  (already shipped)** — all four searchers implement `credentials_error()`
+  in `searchers/base.py`'s ABC; WoS bare-KeyError, Semantic Scholar
+  silent-empty, and OpenAlex no-key cases already handled correctly.
   **Why deferred:** each of `scopus.py`, `wos.py`, `openalex.py`,
   `semantic_scholar.py` re-implements "API key missing → raise"
   logic with inconsistent error regimes. Concrete cases to cover:
@@ -139,7 +146,10 @@ directory — not checked in because it references machine-local paths).
   each searcher to use it.
   Files: [scripts/pipelines/searchers/base.py](scripts/pipelines/searchers/base.py), [scripts/pipelines/searchers/](scripts/pipelines/searchers/).
 
-- **P7** — shared log-CSV schemas.
+- **P7** ✓ — shared log-CSV schemas. **Done** — `ABSTRACT_LOG_FIELDS`,
+  `PDF_LOG_FIELDS`, `DOI_LOG_FIELDS` added to
+  `scripts/pipelines/log_schemas.py`; enrich scripts import via alias.
+  Canonical field order fixed (PDF `source`/`status` swap resolved).
   **Why deferred:** log schemas are defined inline in each orchestrator
   but downstream templates (e.g. `test_systematic_review.py`) expect
   specific columns. Adding a column risks silent template drift.

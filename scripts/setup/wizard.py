@@ -413,8 +413,12 @@ EXPECTED_MCP: tuple[McpServerSpec, ...] = (
         add_args=("-s", "user", "zotero", "--", "zotero-mcp"),
         homepage="https://github.com/54yyyu/zotero-mcp",
         install_cmd="uv tool install zotero-mcp-server",
-        install_note="After install, run: zotero-mcp setup. "
-                     "PyPI alt: pip install zotero-mcp-server.",
+        install_note=(
+            "After install, run: zotero-mcp setup. "
+            "PyPI alt: pip install zotero-mcp-server. "
+            "Optional extras for retraction alerts + semantic search: "
+            "uv tool install 'zotero-mcp-server[scite,semantic]'"
+        ),
         tier=MCP_TIER_REQUIRED,
     ),
     McpServerSpec(
@@ -1533,6 +1537,15 @@ def _print_mcp_summary(current: dict[str, str]) -> tuple[bool, bool]:
                 else:
                     print("          Install:  (auto via npx/uvx — see project page)")
                 print(f"          Project:  {spec.homepage}")
+            elif spec.name == "zotero":
+                print(
+                    "          Optional extras: "
+                    "uv tool install 'zotero-mcp-server[scite,semantic]'"
+                )
+                print(
+                    "          Adds Scite retraction alerts and semantic "
+                    "search (R5 in plugin docs — recommended)."
+                )
 
     zotero_status = current.get("zotero", MCP_STATUS_MISSING)
     zotero_missing = zotero_status != MCP_STATUS_CONNECTED
