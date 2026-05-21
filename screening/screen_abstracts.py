@@ -192,13 +192,23 @@ def _screen_one(record: dict, cfg, client, dry_run: bool) -> dict:
     if dry_run:
         decision, reason = "borderline", "[dry-run]"
     else:
-        resp = client.messages.create(
-            model=cfg.ABSTRACT_SCREENING_MODEL,
-            max_tokens=128,
-            temperature=0,
-            system=cfg.ABSTRACT_SCREENING_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_msg}],
-        )
+        import anthropic as _anthropic
+        delay = 5
+        for attempt in range(6):
+            try:
+                resp = client.messages.create(
+                    model=cfg.ABSTRACT_SCREENING_MODEL,
+                    max_tokens=128,
+                    temperature=0,
+                    system=cfg.ABSTRACT_SCREENING_SYSTEM_PROMPT,
+                    messages=[{"role": "user", "content": user_msg}],
+                )
+                break
+            except _anthropic.RateLimitError:
+                if attempt == 5:
+                    raise
+                time.sleep(delay)
+                delay = min(delay * 2, 120)
         text = resp.content[0].text.strip()
         decision, reason = "borderline", text
         for line in text.splitlines():
