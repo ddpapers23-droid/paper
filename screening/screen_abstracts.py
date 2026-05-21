@@ -103,7 +103,11 @@ def _parse_pubmed_nbib(path: Path) -> list[dict]:
 
 
 def _parse_ris(path: Path) -> list[dict]:
-    """Parse a RIS file (Web of Science / Embase / Scopus export)."""
+    """Parse a RIS file (WoS, Embase/Ovid, Scopus exports).
+
+    Handles both standard RIS tags (TI/AB/AU/PY) and Ovid variants
+    (T1/N2/A1/Y1) in the same pass.
+    """
     records: list[dict] = []
     current: dict = {}
     with open(path, encoding="utf-8-sig") as f:
@@ -115,17 +119,20 @@ def _parse_ris(path: Path) -> list[dict]:
                 if current:
                     records.append(current)
                 current = {"db": path.stem}
-            elif tag == "TI":
+            elif tag in ("TI", "T1"):
                 current["title"] = val
-            elif tag == "AB":
+            elif tag in ("AB", "N2"):
                 current["abstract"] = val
-            elif tag == "AU" and "authors" not in current:
+            elif tag in ("AU", "A1") and "authors" not in current:
                 current["authors"] = val
             elif tag == "DO":
-                current.setdefault("doi", val.lower())
-            elif tag == "PY":
-                current.setdefault("year", val[:4])
-            elif tag in ("T2", "JO", "JA"):
+                doi = re.sub(r"https?://(?:dx\.)?doi\.org/", "", val).lower()
+                current.setdefault("doi", doi)
+            elif tag in ("PY", "Y1"):
+                m = re.search(r"\d{4}", val)
+                if m:
+                    current.setdefault("year", m.group())
+            elif tag in ("T2", "JO", "JA", "JF"):
                 current.setdefault("source", val)
             elif tag == "ER":
                 if current:
