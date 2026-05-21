@@ -278,9 +278,11 @@ directory — not checked in because it references machine-local paths).
 
 ### Reference-project adoptions
 
-- **R1 + R2 + R3** — Concession Threshold Protocol, frame-lock
+- **R1 + R2 + R3** ✓ — Concession Threshold Protocol, frame-lock
   detection, and explicit read-only constraint on critic subagents
-  (from `Imbad0202/academic-research-skills`).
+  (from `Imbad0202/academic-research-skills`). **Done** — new
+  "Anti-sycophancy protocols" section (R1, R2) and read-only block in
+  generic preamble (R3) in `skills/critic-loop/SKILL.md`.
   **Why deferred:** R1 directly targets the sycophancy failure mode
   our four-critic loop is vulnerable to. R2 is a one-line rule. R3
   formalizes behaviour we already rely on.

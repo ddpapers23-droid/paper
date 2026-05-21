@@ -215,6 +215,45 @@ while iter <= MAX_ITER:
   iter += 1
 ```
 
+## Anti-sycophancy protocols
+
+### R1 — Concession Threshold Protocol
+
+When a critic's verdict improves from BLOCK in iteration N to
+SHIP-WITH-REVISIONS or SHIP in iteration N+1, verify that the
+improvement is earned before accepting it:
+
+1. Pull every MAJOR item the critic raised in iteration N from
+   `decisions.md`.
+2. For each item marked "applied": check that the Step 5 edit in
+   iteration N directly resolves the specific claim, statistic, or
+   structural problem — not just restates it in different words.
+3. If any applied edit is cosmetic, **re-prompt that critic** with:
+   > "Your iteration N report flagged [item] as MAJOR. The revision
+   > made was: [paste the exact diff or edit]. Re-evaluate whether
+   > this revision resolves your flag. Evaluate the revision only —
+   > do not soften your assessment because revision occurred."
+4. If the re-prompt still returns SHIP/SHIP-WITH-REVISIONS without
+   explicitly addressing why the MAJOR is now resolved, discard that
+   critic's iteration N+1 output and surface to the user as a
+   human-adjudication request.
+
+Apply this protocol only on verdict improvements (BLOCK → better).
+A critic staying at BLOCK or worsening needs no additional check.
+
+### R2 — Frame-lock detection
+
+A MINOR or NIT item is **frame-locked** when it appears in three
+consecutive iterations from the same critic on the same topic —
+marked "applied" each time but re-appearing.
+
+On the third consecutive appearance: escalate the item to MAJOR,
+record the escalation in `decisions.md` with the note "frame-locked:
+escalated from MINOR after 3 iterations without resolution", and
+surface to the user as a human-adjudication request. Do not apply
+further edits to that item without explicit user confirmation — the
+critic and main agent are stuck, and the author must break the deadlock.
+
 ## Generic prompt preamble (all critics)
 
 Append the perspective-specific prompt below this preamble:
@@ -241,6 +280,13 @@ Anti-sycophancy — STRICT:
   again. If a new MAJOR issue has been introduced by the revision, flag it.
   The loop's purpose is to exit when no MAJOR issue remains, not to exit
   because you are tired of flagging.
+
+Your role — READ-ONLY — STRICT:
+  Flag issues. Do NOT rewrite prose, do NOT call Edit, Write, Bash, or
+  any state-modifying tool, do NOT create or modify files. The main
+  agent serialises all edits after adjudication. A critic that writes
+  files contaminates the test/render sequence and invalidates the loop's
+  diff anchor.
 
 Your role: FLAG issues, do NOT rewrite. The author will adjudicate and apply.
 
