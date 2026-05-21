@@ -269,8 +269,11 @@ directory — not checked in because it references machine-local paths).
      fallback path also needs its own live coverage entry.
   Files: [scripts/pipelines/fetchers/sciencedirect.py](scripts/pipelines/fetchers/sciencedirect.py), [scripts/pipelines/audit_zotero_library.py](scripts/pipelines/audit_zotero_library.py), [tests/live/](tests/live/).
 
-- **P9** — migrate `test_live_coverage.py` from `legacy/` to
-  `fetchers/*.py`.
+- **P9** ✓ — migrate `test_live_coverage.py` from `legacy/` to
+  `fetchers/*.py`. **Done** — new `_fetcher_names()` helper walks
+  `fetchers/*.py` with regex (no imports); `_ABSTRACT_ALIAS` and
+  `_PDF_ALIAS` dicts replace the old legacy-function alias maps.
+  `legacy/` can now be deleted when ready.
   **Why deferred:** the live-coverage guard currently walks
   `legacy/fetch_abstracts.py` and `legacy/attach_pdfs.py` for the
   canonical list of sources ([tests/unit/test_live_coverage.py:103-110](tests/unit/test_live_coverage.py#L103-L110)).
