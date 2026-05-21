@@ -413,6 +413,7 @@ def main() -> int:
                 # Stable ordering: most actionable causes first.
                 ordered = [
                     pdf_fetch_log.FailureCause.ACCESS_BLOCKED.value,
+                    pdf_fetch_log.FailureCause.ELSEVIER_PREVIEW_BLOCKED.value,
                     pdf_fetch_log.FailureCause.OUT_OF_SCOPE.value,
                     pdf_fetch_log.FailureCause.UNAVAILABLE.value,
                     pdf_fetch_log.FailureCause.NETWORK_ERROR.value,

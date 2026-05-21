@@ -203,6 +203,7 @@ class ScienceDirectSource(AbstractFetcher, PdfFetcher):
     def fetch_pdf(
         self, doi: str, *, cache_dir, bypass_prefix_filter: bool = False,
     ) -> tuple[Path, str] | None:
+        self._preview_blocked = False  # reset each call; read by _try_cascade
         if (not bypass_prefix_filter
                 and not any(doi.startswith(p) for p in _ELSEVIER_PREFIXES)):
             return None
@@ -246,8 +247,9 @@ class ScienceDirectSource(AbstractFetcher, PdfFetcher):
             if recovered is not None:
                 return recovered, f"{url} (xml-fallback)"
             # Preview was the only thing on offer — refuse to cache.
-            # The cascade caller (enrich_pdfs._try_cascade) logs the
-            # failure; downstream P11 audit surfaces these to the user.
+            # Set _preview_blocked so _try_cascade can log this with
+            # FailureCause.ELSEVIER_PREVIEW_BLOCKED rather than UNAVAILABLE.
+            self._preview_blocked = True
             return None
 
         path.parent.mkdir(parents=True, exist_ok=True)

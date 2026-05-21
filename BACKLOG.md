@@ -205,8 +205,14 @@ directory — not checked in because it references machine-local paths).
      prevents future drift back to the broken pattern.
   Files: [skills/setup/SKILL.md](skills/setup/SKILL.md), [scripts/core/config_loader.py](scripts/core/config_loader.py), [tests/unit/](tests/unit/).
 
-- **P11** — Elsevier ScienceDirect PDF fetcher silently caches
-  1-page previews when entitlement is partial.
+- **P11** ✓ — Elsevier ScienceDirect PDF fetcher silently caches
+  1-page previews when entitlement is partial. **Done** — preview
+  header detection + XML fallback in `fetchers/sciencedirect.py`;
+  `ELSEVIER_PREVIEW_BLOCKED` cause in `pdf_fetch_log.py` wired
+  through `enrich_pdfs._try_cascade`; audit ordered display updated;
+  unit tests in `tests/unit/test_sciencedirect_preview_fallback.py`
+  and `tests/unit/test_pdf_fetch_log.py`; live tests in
+  `tests/live/test_sciencedirect_preview_fallback.py`.
   **Why deferred:** silent correctness failure, not a crash —
   surfaced only because the user noticed 39 papers with <10K
   extracted chars after full-text coding had already started.

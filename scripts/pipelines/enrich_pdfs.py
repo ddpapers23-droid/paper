@@ -1116,6 +1116,7 @@ def _try_cascade(
     item_key = item.get("key", "") or d.get("key", "") or ""
     last_source = ""
     raised_exception = False
+    preview_blocked = False
     for src in sources:
         last_source = src.name
         try:
@@ -1127,19 +1128,23 @@ def _try_cascade(
             raised_exception = True
             continue
         if result is None:
+            if getattr(src, "_preview_blocked", False):
+                preview_blocked = True
             continue
         path, _ = result
         return path, src.name
 
     # Cascade exhausted. Classify and persist if a log path was given.
     if failure_log_path and item_key:
-        # Best-effort cause: out-of-scope item types resolve regardless;
-        # otherwise lean on UNAVAILABLE for "all fetchers returned None"
-        # vs NETWORK_ERROR when an exception was raised at least once
-        # (transport problem rather than missing PDF).
+        # Priority order: out-of-scope beats everything (item won't ever
+        # succeed); then Elsevier preview-blocked (PDF exists but TDM
+        # entitlement gap — suggests ILL, not FE6); then network errors
+        # (transient); else UNAVAILABLE (generic "not found").
         cause: pdf_fetch_log.FailureCause | None = None
         if item_type in pdf_fetch_log.DEFAULT_OUT_OF_SCOPE_TYPES:
             cause = pdf_fetch_log.FailureCause.OUT_OF_SCOPE
+        elif preview_blocked:
+            cause = pdf_fetch_log.FailureCause.ELSEVIER_PREVIEW_BLOCKED
         elif raised_exception:
             cause = pdf_fetch_log.FailureCause.NETWORK_ERROR
         try:
