@@ -163,8 +163,11 @@ directory — not checked in because it references machine-local paths).
   for partial flush on SIGINT. Thread-safety tests.
   Files: [scripts/pipelines/abstract_screen.py](scripts/pipelines/abstract_screen.py), [scripts/pipelines/fulltext_code.py](scripts/pipelines/fulltext_code.py), [scripts/pipelines/zotero_io.py](scripts/pipelines/zotero_io.py).
 
-- **P12** — Setup wizard paste-in command breaks when two plugin
-  versions are cached side-by-side.
+- **P12** ✓ — Setup wizard paste-in command breaks when two plugin
+  versions are cached side-by-side. **Done** — skill uses
+  `${CLAUDE_PLUGIN_ROOT}`, `config_loader.require()` uses
+  `Path(__file__)`, regression test in
+  `tests/unit/test_setup_skill_no_glob.py`.
   **Why deferred:** ergonomic failure on a happy-path command — it
   bites whenever Claude Code keeps an older plugin version cached
   alongside the new one (common after `/plugin marketplace
