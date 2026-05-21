@@ -33,7 +33,7 @@ csl: elsevier-vancouver.csl             # JoA uses numbered Vancouver references
   - Level of evidence: Level III (Systematic Review of Level III studies),
     or adjust per the studies included.
 
-  Every number in the prose must come from s['key'] — never a literal.
+  Every number in the prose must come from an inline expression like `{python} s['search.unique_records']` — never a literal.
   Delete all HTML comments before submission.
 -->
 
