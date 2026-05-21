@@ -37,33 +37,26 @@ class SemanticScholarSearch(SearchSource):
         return None
 
     def run(self, config, ctx: SearchContext) -> list[dict]:
-        blocks: list[tuple[str, list[str]]] = []
-        if getattr(config, "BLOCK_A_TERMS", None):
-            blocks.append(("block_a", config.BLOCK_A_TERMS))
-        if getattr(config, "BLOCK_B_TERMS", None):
-            blocks.append(("block_b", config.BLOCK_B_TERMS))
-        if not blocks:
-            return []
-
         api_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY", "")
         issn_set = {i.strip() for i in ctx.issns if i.strip()}
 
-        rows: list[dict] = []
-        for label, terms in blocks:
-            # Semantic Scholar bulk-search syntax uses `|` for OR between
-            # quoted phrases, `&` for AND, `-` for negation. Escape each
-            # term with quotes so phrases stay together.
-            query = " | ".join(f'"{t}"' for t in terms)
-            print(f"  Semantic Scholar {label}: ", end="", flush=True)
-            papers = self._fetch_all(query, ctx, api_key)
-            # Client-side ISSN filter — S2 does not do this server-side.
-            kept = [p for p in papers
-                    if self._paper_matches_issn(p, issn_set)]
-            print(f"{len(kept)} results (from {len(papers)} unfiltered)",
-                  flush=True)
-            for paper in kept:
-                rows.append(self._paper_to_row(paper, label))
-        return rows
+        a_terms = getattr(config, "BLOCK_A_TERMS", None) or []
+        b_terms = getattr(config, "BLOCK_B_TERMS", None) or []
+
+        # S2 bulk-search: `|` = OR, `+` = AND, `-` = NOT, quoted phrases.
+        # Build (A1 | A2 ...) + (B1 | B2 ...) to mirror PubMed AND strategy.
+        parts: list[str] = []
+        if a_terms:
+            parts.append("(" + " | ".join(f'"{t}"' for t in a_terms) + ")")
+        if b_terms:
+            parts.append("(" + " | ".join(f'"{t}"' for t in b_terms) + ")")
+        query = " + ".join(parts)
+
+        print("  Semantic Scholar combined: ", end="", flush=True)
+        papers = self._fetch_all(query, ctx, api_key)
+        kept = [p for p in papers if self._paper_matches_issn(p, issn_set)]
+        print(f"{len(kept)} results (from {len(papers)} unfiltered)", flush=True)
+        return [self._paper_to_row(p, "combined") for p in kept]
 
     def _paper_matches_issn(self, paper: dict, issn_set: set[str]) -> bool:
         if not issn_set:

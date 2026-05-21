@@ -92,27 +92,22 @@ QUERY_DEFS = [
 # ---------------------------------------------------------------------------
 
 BLOCK_A_TERMS = [
-    "machine learning total knee arthroplasty",
-    "machine learning total hip arthroplasty",
-    "artificial intelligence total knee arthroplasty",
-    "artificial intelligence total hip arthroplasty",
-    "deep learning arthroplasty outcome",
-    "random forest arthroplasty outcome",
-    "neural network arthroplasty outcome",
-    "gradient boosting arthroplasty",
-    "XGBoost arthroplasty",
+    "machine learning",
+    "artificial intelligence",
+    "deep learning",
+    "neural network",
+    "random forest",
+    "gradient boosting",
+    "XGBoost",
 ]
 
 BLOCK_B_TERMS = [
-    "KOOS arthroplasty prediction",
-    "HOOS arthroplasty prediction",
-    "WOMAC machine learning",
-    "Oxford knee score machine learning",
-    "Oxford hip score machine learning",
-    "patient-reported outcome arthroplasty machine learning",
-    "PROM arthroplasty prediction model",
-    "functional outcome arthroplasty artificial intelligence",
-    "MCID arthroplasty prediction",
+    "total knee arthroplasty",
+    "total hip arthroplasty",
+    "knee replacement",
+    "hip replacement",
+    "TKA",
+    "THA",
 ]
 
 
