@@ -1,0 +1,55 @@
+paper_id,first_author,year,title,journal,doi,country,study_design,setting,data_source,joint,n_total,n_tka,n_tha,mean_age,pct_female,mean_bmi,indication,ml_algorithms,n_algorithms_compared,best_algorithm,feature_types,n_features_input,feature_selection,interpretability_reported,prom_instruments,prom_endpoint,prom_timepoint_months,outcome_type,auc,accuracy,sensitivity,specificity,r2,rmse,other_metric,other_metric_value,calibration_reported,validation_type,n_train,n_test,external_validation,probast_d1_participants,probast_d2_predictors,probast_d3_outcome,probast_d4_analysis,probast_overall,tripod_adherence,code_available,data_available,extractor_initials,extraction_date,notes
+76,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+94,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+95,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found at specified path. All fields are empty. Manual extraction required.
+87,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+12,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+11,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+70,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+13,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+84,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed: file not found. No text content was available for extraction. All fields are empty and require manual review.
+77,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+42,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+52,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+2,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+21,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+91,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+53,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+79,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+81,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+19,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+47,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+57,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+90,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+17,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+71,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+62,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found at specified path. All fields are empty. Manual data entry required.
+26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+78,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+41,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+33,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+35,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed: file not found. No text content was available for extraction. All fields are empty and require manual review.
+24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+38,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-23,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+58,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+80,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+59,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+73,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+86,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+55,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+54,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found at specified path. All fields are empty. Manual data entry required.
+56,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found at specified path. All fields are empty. Manual extraction required.
+60,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+63,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+65,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
+75,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found at specified path. All fields are empty. Manual data entry required.
+85,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+66,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+89,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+82,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+51,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual review required to populate this record.
+69,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed: file not found. No text content was available for extraction. All fields are empty and require manual review.
+92,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,AI,2026-05-24,PDF extraction failed — no file found. All fields are empty. Manual data entry required.
