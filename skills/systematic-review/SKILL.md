@@ -1099,6 +1099,22 @@ preregistration — are **out of scope** for v0.1. A medical-SLR variant
 would need those plugged in; forcing them into social-science reviews
 is domain-inappropriate.
 
+## IRON RULES — decision table
+
+The most failure-prone patterns, each with the exact failure mode and the
+correct behaviour. Use as a pre-flight checklist before any pipeline step.
+
+| Anti-pattern | Why it fails | Correct behaviour |
+|---|---|---|
+| API key hardcoded in a script | Leaks into git history and Claude context on next Read | Read from env var via `os.environ.get("KEY")` or `config_loader.get()` |
+| `temperature` omitted or non-zero in screening/coding API call | Model responses vary across runs → non-reproducible decisions → results cannot be reported | Pin `temperature=0` in every `anthropic.messages.create()` call; `test_temperature_zero_pinned` enforces this |
+| Using OpenAlex `abstract_inverted_index` as the abstract source | Reconstructed from GROBID full-text parsing — returns body fragments, not the abstract; fails the 60-char length check silently | Use GROBID TEI `<abstract>` element (last resort) or Crossref / Semantic Scholar first |
+| Manual count typed in manuscript prose | Stale the moment the pipeline re-runs; invisible to `test_empirical_integrity.py` | Inline expression from `build_stats()` stats dict; add key to `manuscript_stats.py` if missing |
+| Reading `~/.config/academic-research/config.toml` via `cat` / `grep` / Python `open()` | API keys enter Claude context and can be logged or leaked | Pipeline scripts read it via `config_loader.get()` outside the tool layer; you have no legitimate path to inspect it — re-run `/setup` to reset |
+| Bash heredoc or inline Python for a pipeline-style task | Bypasses per-approved permissions, keys can leak through context, no audit trail | Invoke `${CLAUDE_PLUGIN_ROOT}/scripts/pipelines/<script>.py`; if no script covers the task, tell the user and propose adding one |
+| PDF accepted on HTTP 200 alone | Cloudflare challenge pages and paywalls return 200 HTML | Check `resp.content[:4] == b"%PDF"` (magic bytes) before caching |
+| Predatory-journal paper silently excluded | Undocumented exclusion — cannot appear in PRISMA flowchart, auditor cannot check | Add `predatory:flag` tag and surface to the author for a documented decision |
+
 ## Red flags
 
 - You are about to hardcode an API key in a reusable script (use env vars).

@@ -223,3 +223,38 @@ def test_fetch_pdf_skips_when_doi_prefix_not_elsevier(tmp_path: Path) -> None:
     src = _make_source()
     src.http.get.side_effect = AssertionError("should not be called for non-Elsevier DOI")
     assert src.fetch_pdf("10.48550/arxiv.2401.01234", cache_dir=tmp_path) is None
+
+
+def test_fetch_pdf_sets_preview_blocked_when_both_endpoints_fail(tmp_path: Path) -> None:
+    """_preview_blocked is set to True when the PDF endpoint returns a
+    WARNING header AND the XML fallback also fails. The cascade caller
+    (_try_cascade in enrich_pdfs) reads this attribute to log
+    ELSEVIER_PREVIEW_BLOCKED rather than the generic UNAVAILABLE cause."""
+    src = _make_source()
+    src.http.get.side_effect = [
+        _pdf_response(els_status="WARNING - not entitled"),
+        _xml_response(els_status="WARNING - not entitled"),
+    ]
+    result = src.fetch_pdf("10.1016/j.blocked.2020.01.001", cache_dir=tmp_path)
+    assert result is None
+    assert src._preview_blocked is True
+
+
+def test_fetch_pdf_clears_preview_blocked_on_success(tmp_path: Path) -> None:
+    """_preview_blocked is reset to False at the start of each call so
+    stale state from a prior call doesn't leak into the next item."""
+    src = _make_source()
+    # First call: preview blocked
+    src.http.get.side_effect = [
+        _pdf_response(els_status="WARNING - not entitled"),
+        _xml_response(els_status="WARNING - not entitled"),
+    ]
+    src.fetch_pdf("10.1016/j.blocked.2020.01.001", cache_dir=tmp_path)
+    assert src._preview_blocked is True
+
+    # Second call: normal PDF — flag should be cleared
+    src.http.get.side_effect = None
+    src.http.get.return_value = _pdf_response(els_status="OK")
+    result = src.fetch_pdf("10.1016/j.good.2020.01.001", cache_dir=tmp_path)
+    assert result is not None
+    assert src._preview_blocked is False

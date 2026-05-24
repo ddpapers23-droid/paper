@@ -1,0 +1,545 @@
+---
+title: "Artificial Intelligence and Machine Learning for Predicting Patient-Reported Outcomes Following Total Knee and Total Hip Arthroplasty: A Systematic Review"
+author:
+  - name: "<Author 1>"
+    affiliation: "<Institution>"
+  - name: "<Author 2>"
+    affiliation: "<Institution>"
+date: today
+format:
+  docx:
+    toc: false
+    number-sections: false
+    reference-doc: joa-reference.docx   # Journal of Arthroplasty template if available
+  html:
+    toc: true
+    number-sections: true
+bibliography: references.bib
+csl: elsevier-vancouver.csl             # JoA uses numbered Vancouver references
+---
+
+<!--
+  Journal of Arthroplasty manuscript scaffold.
+
+  Formatting notes:
+  - Word limit: ~4,000 words (Introduction through Discussion; excludes
+    abstract, tables, references). Check current JoA author guidelines.
+  - Structured abstract: Background / Methods / Results / Conclusion, ≤250 words.
+  - Figures: PRISMA 2020 flow diagram (Figure 1) required.
+  - Tables: suggested maximum 5 tables (see Table stubs below).
+  - References: Vancouver numbered style; ≤50 references typical for SLR.
+  - PROSPERO registration number must appear in Methods.
+  - PRISMA 2020 checklist must be submitted as a supplementary file.
+  - Level of evidence: Level III (Systematic Review of Level III studies),
+    or adjust per the studies included.
+
+  Every number in the prose must come from an inline expression like `{python} s['search.unique_records']` — never a literal.
+  Delete all HTML comments before submission.
+-->
+
+
+```{python}
+#| label: setup
+#| echo: false
+import sys
+from pathlib import Path
+
+_ROOT = Path().resolve().parent   # manuscript/ → project root
+for _p in (_ROOT, _ROOT / "analysis", _ROOT / "manuscript"):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
+from manuscript_stats import build_stats
+from manuscript_tables import (
+    table_study_characteristics,
+    table_probast_tka,
+    table_probast_tha,
+    table_model_performance_tka,
+    table_model_performance_tha,
+)
+
+s = build_stats()
+```
+
+
+<!-- =========================================================
+     STRUCTURED ABSTRACT (≤250 words; JoA requires four heads)
+     ========================================================= -->
+
+## Abstract
+
+**Background:** Total knee arthroplasty (TKA) and total hip arthroplasty
+(THA) consistently improve pain and function, yet 15–20% of patients report
+dissatisfactory outcomes. Identifying patients at risk of poor patient-reported
+outcomes (PROMs) before surgery could enable targeted intervention. Artificial
+intelligence (AI) and machine learning (ML) models offer a data-driven approach
+to this prediction task, but their accuracy and clinical applicability have not
+been systematically reviewed.
+
+**Methods:** We conducted a systematic review following PRISMA 2020 guidelines
+(PROSPERO: \<INSERT CRD NUMBER\>). We searched PubMed/MEDLINE, Embase,
+Cochrane CENTRAL, Scopus, Web of Science, OpenAlex, and Semantic Scholar from
+January 2010 through \<SEARCH DATE\>. Studies developing or validating an AI/ML
+model to predict any validated PROM (KOOS, HOOS, OKS, OHS, WOMAC, SF-36,
+EQ-5D, or equivalent) following TKA or THA were eligible. Risk of bias was
+assessed using PROBAST. Findings are reported narratively; meta-analysis was
+not performed owing to heterogeneity in algorithms, predictors, and outcomes.
+
+**Results:** \<INSERT AFTER SCREENING\>: We identified
+`{python} s['screen.fulltext.n_include']` eligible studies —
+`{python} s['results.n_studies_tka']` reporting TKA models and
+`{python} s['results.n_studies_tha']` reporting THA models. \<INSERT KEY
+FINDINGS — algorithm types, best AUC ranges, most common predictors.\>
+
+**Conclusion:** \<INSERT AFTER SYNTHESIS\>. Standardised PROM reporting and
+external validation remain the critical gaps before clinical adoption.
+
+**Level of Evidence:** Level III — Systematic Review.
+
+**Keywords:** total knee arthroplasty; total hip arthroplasty; machine
+learning; artificial intelligence; patient-reported outcomes; PROM; KOOS;
+HOOS; prediction model; PROBAST.
+
+
+---
+
+
+<!-- =========================================================
+     INTRODUCTION
+     ========================================================= -->
+
+## Introduction
+
+Total knee arthroplasty (TKA) and total hip arthroplasty (THA) are among the
+most commonly performed elective surgical procedures worldwide, with volumes
+projected to grow substantially over the coming decade [@kurtz2007projections].
+Both procedures reliably reduce pain and improve function at the population
+level; however, approximately 15–20% of TKA recipients and 10–15% of THA
+recipients report persistent dissatisfaction, pain, or functional limitation
+after surgery [@gunaratne2017patient; @beswick2012what].
+
+Patient-reported outcome measures (PROMs) — including the Knee injury and
+Osteoarthritis Outcome Score (KOOS), the Hip disability and Osteoarthritis
+Outcome Score (HOOS), the Oxford Knee and Hip Scores, and the Western Ontario
+and McMaster Universities Osteoarthritis Index (WOMAC) — are now the primary
+endpoints in arthroplasty research and are routinely collected by national
+registries [@rolfson2016patient]. Achieving the minimal clinically important
+difference (MCID) on these instruments is the benchmark for meaningful benefit
+[@anderson2012mcid].
+
+The ability to predict which patients will fail to achieve MCID, or will
+experience deterioration in PROMs, before surgery could guide patient selection,
+set realistic expectations, target prehabilitation, and inform shared
+decision-making. Traditional regression-based prediction models have shown
+modest discrimination (AUC typically 0.65–0.75) [@pan2019predicting].
+Artificial intelligence and machine learning (AI/ML) algorithms — including
+random forests, gradient boosting (XGBoost), and deep neural networks — can
+capture non-linear interactions among predictors that linear models miss, and
+may improve predictive accuracy [@obermeyer2016predicting].
+
+A growing body of studies has applied AI/ML to PROM prediction in arthroplasty,
+but no systematic review has synthesised this evidence, assessed model quality
+using a risk-of-bias framework, or compared performance across joint types. We
+conducted a systematic review to: (1) characterise AI/ML approaches used to
+predict PROMs following TKA and THA; (2) summarise model performance and the
+predictors most consistently selected; and (3) assess risk of bias using
+PROBAST and identify evidence gaps.
+
+
+---
+
+
+<!-- =========================================================
+     METHODS
+     ========================================================= -->
+
+## Methods
+
+This review is reported in accordance with the Preferred Reporting Items for
+Systematic Reviews and Meta-Analyses (PRISMA 2020) statement [@page2021prisma].
+The protocol was registered prospectively on PROSPERO
+(registration: \<INSERT CRD NUMBER\>).
+
+### Eligibility Criteria
+
+Studies were eligible if they met all four PICOS criteria:
+
+- **Population:** adults (≥18 years) undergoing primary or revision TKA or THA.
+  Studies in which arthroplasty was combined with other procedures were eligible
+  if TKA/THA data were reported separately.
+- **Intervention:** development, validation, or head-to-head benchmarking of
+  at least one AI or ML algorithm (including but not limited to random forests,
+  gradient boosting, support vector machines, neural networks, and deep learning
+  architectures) applied to PROM prediction.
+- **Comparator:** no restriction; comparator models (e.g. logistic regression)
+  were eligible.
+- **Outcome:** at least one validated PROM (KOOS, KOOS-PS, HOOS, HOOS-PS,
+  Oxford Knee Score, Oxford Hip Score, WOMAC, SF-36, SF-12, EQ-5D, PROMIS,
+  VR-12, or equivalent) as a primary or key secondary endpoint.
+
+Studies were excluded if they: used purely statistical models without an ML
+component; applied AI only to imaging segmentation or implant positioning
+without predicting a PROM; were reviews, editorials, letters, or protocols
+without outcome data; or were published in languages other than English with no
+available translation.
+
+### Search Strategy
+
+We searched PubMed/MEDLINE, Embase (Ovid), Cochrane CENTRAL, Scopus, Web of
+Science (Core Collection), OpenAlex, and Semantic Scholar from January 2010
+through `{python} s['search.date']`. The full search strings for all databases
+are provided in the supplementary `search_config.py`. No language or
+publication-type filters were applied beyond the date window.
+
+### Study Selection
+
+Records were imported to Zotero and deduplicated by DOI with a
+title–first-author fallback. Two reviewers (R1, R2) independently screened
+titles and abstracts using the eligibility criteria above; decisions were
+recorded as include, borderline (insufficient information), or exclude with a
+code. Cohen's kappa was computed before full-text review
+($\kappa$ = `{python} s['kappa.abstract']`; target ≥ 0.80). Disagreements
+were resolved by consensus; a third reviewer adjudicated unresolved conflicts.
+
+Full texts of all include and borderline abstracts were retrieved. The same
+two reviewers independently assessed full texts; kappa at this stage was
+`{python} s['kappa.fulltext']`. Reasons for exclusion are reported in the
+PRISMA flow diagram (Figure 1).
+
+### Data Extraction
+
+One reviewer extracted data using a standardised form; a second reviewer
+independently verified 20% of records selected at random. Discrepancies were
+resolved by discussion. Extracted variables included: study design and country;
+sample size; joint type (TKA/THA); AI/ML algorithm(s); preoperative predictors;
+follow-up duration; PROM(s) predicted; prediction target (continuous score,
+binary MCID achievement, or outcome class); validation method (internal or
+external); and all reported performance metrics (AUC, C-statistic, RMSE, R²,
+accuracy, F1, calibration statistics).
+
+### Risk of Bias Assessment
+
+Risk of bias was assessed using the Prediction model Risk Of Bias ASsessment
+Tool (PROBAST) [@wolff2019probast]. PROBAST evaluates four domains:
+(1) Participants, (2) Predictors, (3) Outcome, and (4) Analysis. Each domain
+is rated Low, High, or Unclear risk; overall risk is Low only when all four
+domains are Low. Two reviewers applied PROBAST independently; discrepancies
+were resolved by consensus. PROBAST signalling questions and ratings are
+provided in Tables 2 (TKA) and 3 (THA).
+
+### Synthesis
+
+Owing to substantial heterogeneity in ML algorithms, predictor sets, PROM
+instruments, follow-up periods, and performance metrics, we did not pool
+results quantitatively. We present a structured narrative synthesis, reported
+separately for TKA and THA, organised by: (a) ML algorithm type; (b) predictors
+most frequently selected or ranked highest in feature importance; (c) model
+performance; and (d) validation approach. Where multiple studies reported AUC
+for binary MCID prediction, we report the range. We assessed publication bias
+qualitatively by examining whether lower-performing models remained in the
+literature.
+
+
+---
+
+
+<!-- =========================================================
+     RESULTS
+     ========================================================= -->
+
+## Results
+
+### Study Selection
+
+The database searches retrieved `{python} s['search.unique_records']` records
+after deduplication. After title–abstract screening,
+`{python} s['screen.abstract.n_include'] + s['screen.abstract.n_borderline']`
+records proceeded to full-text review. Following full-text assessment,
+`{python} s['screen.fulltext.n_include']` studies met all eligibility criteria
+and were included in the review. The PRISMA 2020 flow diagram is presented in
+Figure 1. The most common reason for full-text exclusion was
+\<INSERT MOST COMMON REASON — e.g., "no validated PROM as the ML outcome
+(FE3), accounting for XX% of exclusions"\>.
+
+```{python}
+#| label: fig-prisma
+#| echo: false
+#| fig-cap: "PRISMA 2020 flow diagram."
+import sys
+from pathlib import Path
+_ROOT = Path().resolve().parent
+sys.path.insert(0, str(_ROOT / "analysis"))
+from generate_prisma import generate
+generate(s)
+from IPython.display import Image
+_img = _ROOT / "analysis" / "results" / "prisma_flow.png"
+if _img.exists():
+    Image(str(_img))
+```
+
+### Study Characteristics
+
+Included studies were published between \<year\> and \<year\>, with a marked
+increase after 2019. Studies originated from
+`{python} s['results.n_countries']` countries; the United States and the United
+Kingdom contributed the largest share. Sample sizes ranged from \<min\> to
+\<max\> patients (median: \<median\>). Follow-up duration ranged from 3 months
+to \<max\> years; 12-month follow-up was most common. Study characteristics are
+summarised in Table 1.
+
+```{python}
+#| label: tbl-characteristics
+#| echo: false
+table_study_characteristics(s)
+```
+
+*Table 1. Characteristics of included studies.*
+
+
+---
+
+
+### TKA: AI/ML Models for Predicting PROMs
+
+<!-- Write this section after full-text coding is complete. Structure:
+     1. Overview of ML algorithm types used across TKA studies
+     2. Predictor variables most commonly used / highest feature importance
+     3. Performance metrics (AUC range for classification; RMSE/R² for regression)
+     4. Validation approaches
+     5. Key individual study findings
+     Subsections below are suggested; merge or split as the evidence warrants. -->
+
+#### Algorithm Types
+
+`{python} s['results.tka.n_studies']` studies developed or validated AI/ML
+models to predict PROMs following TKA. Random forest and gradient boosting
+(including XGBoost) were the most frequently evaluated algorithms, used in
+\<INSERT N\> and \<INSERT N\> studies respectively. Neural network architectures
+were used in \<INSERT N\> studies. \<INSERT NARRATIVE\>.
+
+#### Predictors
+
+Across TKA studies, the most consistently used preoperative predictors were
+\<INSERT — e.g., "baseline PROM score, age, BMI, comorbidity burden (ASA
+score or Charlson Comorbidity Index), and mental health status (PHQ-9)"\>.
+Feature importance rankings from tree-based models consistently identified
+\<INSERT TOP FEATURES\> as the strongest predictors of postoperative
+`{python} s['results.tka.most_common_prom']`.
+
+#### Model Performance
+
+For studies framing prediction as binary MCID achievement, AUC values ranged
+from `{python} s['results.tka.auc_min']` to
+`{python} s['results.tka.auc_max']`. For regression tasks (predicting
+continuous PROM score), reported RMSE ranged from \<INSERT\>. The best-
+performing model in each study is listed in Table 4.
+
+```{python}
+#| label: tbl-performance-tka
+#| echo: false
+table_model_performance_tka(s)
+```
+
+*Table 4. Model performance for TKA studies (ordered by AUC or primary metric).*
+
+#### Validation
+
+Internal validation via random or k-fold cross-validation was used in
+`{python} s['results.tka.n_internal_val']` studies. External validation on an
+independent cohort was performed in `{python} s['results.tka.n_external_val']`
+studies. \<INSERT OBSERVATION ABOUT PERFORMANCE DROP AT EXTERNAL VALIDATION\>.
+
+
+---
+
+
+### THA: AI/ML Models for Predicting PROMs
+
+#### Algorithm Types
+
+`{python} s['results.tha.n_studies']` studies examined AI/ML prediction of
+PROMs following THA. \<INSERT NARRATIVE PARALLEL TO TKA SECTION\>.
+
+#### Predictors
+
+\<INSERT — note any differences from TKA predictor set, e.g., acetabular
+cup positioning variables, femoral offset, leg-length discrepancy if relevant\>.
+
+#### Model Performance
+
+AUC values in THA studies ranged from `{python} s['results.tha.auc_min']`
+to `{python} s['results.tha.auc_max']`. \<INSERT NARRATIVE\>.
+
+```{python}
+#| label: tbl-performance-tha
+#| echo: false
+table_model_performance_tha(s)
+```
+
+*Table 5. Model performance for THA studies (ordered by AUC or primary metric).*
+
+#### Validation
+
+\<INSERT — note external validation rate in THA studies vs TKA\>.
+
+
+---
+
+
+### Risk of Bias — PROBAST
+
+Risk of bias ratings are summarised in Tables 2 and 3.
+`{python} s['probast.n_low_overall']` studies were rated as Low overall risk.
+The Analysis domain (Domain 4) was the most common source of High or Unclear
+risk, primarily owing to inadequate sample sizes relative to the number of
+predictors, missing-data strategies not reported, and absence of calibration
+statistics. \<INSERT ADDITIONAL NARRATIVE\>.
+
+```{python}
+#| label: tbl-probast-tka
+#| echo: false
+table_probast_tka(s)
+```
+
+*Table 2. PROBAST risk of bias assessment — TKA studies.*
+
+```{python}
+#| label: tbl-probast-tha
+#| echo: false
+table_probast_tha(s)
+```
+
+*Table 3. PROBAST risk of bias assessment — THA studies.*
+
+
+---
+
+
+<!-- =========================================================
+     DISCUSSION
+     ========================================================= -->
+
+## Discussion
+
+### Principal Findings
+
+This systematic review identified `{python} s['screen.fulltext.n_include']`
+studies applying AI/ML algorithms to predict PROMs following TKA or THA,
+published between \<year\> and `{python} s['search.to_year']`. Several
+converging findings emerge. \<INSERT 3–4 SENTENCES SUMMARISING KEY PATTERNS —
+algorithm dominance, predictor consistency, performance ranges, validation
+gaps\>.
+
+### Comparison with Prior Work
+
+Traditional regression-based models for predicting PROM outcomes after
+arthroplasty have shown modest discrimination: a representative meta-analysis
+of logistic regression models for functional outcome prediction reported a
+pooled AUC of approximately 0.65–0.75 [@pan2019predicting], consistent with
+the performance typically attributable to well-known preoperative factors such
+as baseline PROM score, age, BMI, and comorbidity burden. The appeal of AI/ML
+in this context — first articulated in general medicine by
+@obermeyer2016predicting — is the ability to discover non-linear and
+interaction effects among predictors that evade conventional regression.
+Whether the studies identified in this review deliver on that promise is
+addressed in the Principal Findings above. Notably, any performance gain
+estimated from internal validation must be interpreted with caution: without
+external validation on an independent cohort, the incremental benefit of ML
+over well-specified logistic regression remains uncertain.
+
+### Clinical Implications
+
+For a PROM prediction model to change clinical practice in arthroplasty, it
+must satisfy three conditions that most published studies have not yet tested.
+First, discrimination must be sufficient to stratify patients meaningfully —
+an AUC ≥ 0.75–0.80 is often cited as the minimum threshold for a model to
+influence individual-patient decisions, though the appropriate threshold
+depends on the downstream action (e.g., prehabilitation referral versus
+surgical deferral). Second, calibration — how well predicted probabilities
+match observed frequencies — must be demonstrated in the target clinical
+population; good discrimination does not guarantee good calibration, and
+miscalibrated models can generate systematically misleading risk scores.
+Third, implementation trials must show that surfacing model predictions to
+clinicians or patients actually changes the consultation and improves
+outcomes, rather than adding complexity without benefit.
+
+From a health-equity standpoint, all predictive models risk amplifying
+existing inequities if training data over-represent certain demographic
+groups. National registry datasets — the most common training source in
+this literature — capture institutional patterns that may not generalise
+across health systems, surgical volumes, or patient populations with
+different comorbidity profiles. Future implementations must report
+subgroup performance stratified by sex, ethnicity, and socioeconomic
+status before deployment in diverse clinical settings.
+
+### Limitations
+
+This review has several limitations. First, heterogeneity in ML algorithms,
+predictor sets, PROM instruments, and follow-up durations precluded
+meta-analysis, limiting quantitative synthesis. Second, most included studies
+used internal validation only — external validation on independent cohorts is
+the prerequisite for clinical trustworthiness and was performed in only
+`{python} s['results.n_external_val']` studies
+(`{python} s['results.pct_external_val']`%). Third, reporting quality was
+variable: `{python} s['probast.n_no_performance_metric']` studies reported no
+quantitative performance metric, preventing bias assessment in Domain 4.
+Fourth, this review covered English-language studies only; relevant work in
+other languages may have been missed.
+
+### Future Directions
+
+Priorities for the field include: (1) prospective, multicentre cohort studies
+with pre-specified ML protocols and external validation; (2) adoption of the
+TRIPOD+AI reporting guideline [@collins2024tripod] to ensure reproducibility;
+(3) calibration reporting alongside discrimination (AUC alone is insufficient);
+(4) equity analyses to confirm model performance does not vary by sex, race, or
+socioeconomic status; and (5) implementation trials assessing whether
+AI-generated risk scores actually change decision-making and improve outcomes.
+
+
+---
+
+
+## Conclusion
+
+This systematic review synthesised the evidence on AI/ML models for predicting
+PROMs following TKA and THA. \<INSERT: number\> eligible studies were identified,
+with a predominance of tree-based ensemble methods and neural network approaches.
+Performance, where reported, spanned a wide range; the subset of studies
+performing external validation consistently demonstrated lower discrimination
+than internal estimates, underscoring the risk of overfitting to single-centre
+or single-registry cohorts. The most critical evidence gap is not algorithmic —
+random forests and gradient boosting have already been shown capable of capturing
+the relevant predictor space — but methodological: standardised PROM reporting,
+prospective cohort designs with pre-specified ML protocols, rigorous external
+validation, and calibration reporting remain prerequisites before any model
+reaches routine clinical use. Adoption of TRIPOD+AI [@collins2024tripod] and
+systematic risk-of-bias assessment via PROBAST [@wolff2019probast] are the
+immediate priorities for the field.
+
+
+---
+
+
+## Declarations
+
+**Conflicts of interest:** \<INSERT or "The authors declare no conflicts of
+interest relevant to this study."\>
+
+**Funding:** \<INSERT or "No funding was received for this study."\>
+
+**Ethics:** Not applicable (systematic review of published data).
+
+**PROSPERO registration:** \<INSERT CRD NUMBER\>.
+
+**Data availability:** Search strings and screening configurations are available
+in the supplementary `search_config.py` and `screening_config.py`. The coded
+dataset will be deposited at \<INSERT REPOSITORY\> on acceptance.
+
+
+---
+
+
+## References
+
+<!-- Vancouver-numbered; generated automatically from references.bib. -->

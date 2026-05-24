@@ -52,6 +52,13 @@ class FailureCause(StrEnum):
     form the pipeline can reach. Suggested FE code: FE6 (no fulltext
     available)."""
 
+    ELSEVIER_PREVIEW_BLOCKED = "ELSEVIER_PREVIEW_BLOCKED"
+    """Elsevier TDM API returned a 1-page preview PDF (x-els-status:
+    WARNING) and the XML fallback also lacked entitlement. The full
+    text exists on Elsevier's platform but the institution's TDM
+    license doesn't cover this specific article. Suggest ILL or FE6
+    if ILL is not feasible."""
+
     NETWORK_ERROR = "NETWORK_ERROR"
     """Transport-level failure (timeout, DNS, connection refused). Not
     an exclusion — retry next run. Captured for diagnostics so the
@@ -175,6 +182,11 @@ def group_by_cause(failures: list[dict[str, str]]) -> dict[str, list[dict[str, s
 SUGGESTED_FE_CODE: dict[str, str] = {
     FailureCause.OUT_OF_SCOPE.value: "FE2 / FE3 (out of scope: non-journal item type)",
     FailureCause.ACCESS_BLOCKED.value: "Flag for ILL — paywall, full text exists",
+    FailureCause.ELSEVIER_PREVIEW_BLOCKED.value: (
+        "Flag for ILL — Elsevier TDM preview only; "
+        "full text exists but institutional TDM entitlement is missing for this article. "
+        "Use FE6 if ILL is not feasible."
+    ),
     FailureCause.UNAVAILABLE.value: "FE6 (no fulltext available)",
     FailureCause.NETWORK_ERROR.value: "Retry next run (transport error, not an exclusion)",
 }

@@ -1,9 +1,10 @@
 """OpenAlex REST API search.
 
-Runs two block queries (Block A terms, Block B terms) separately and
-merges, because OpenAlex's `search=` parameter is relevance-ranked —
-a combined A+B query loses recall on papers that match one block
-strongly and the other weakly. Free tier; no API key required.
+When both BLOCK_A_TERMS and BLOCK_B_TERMS are present, runs a single
+ANDed query: (A1 OR A2 ...) AND (B1 OR B2 ...).  This mirrors the
+PubMed/Scopus three-concept AND strategy and avoids the 10k-cap
+explosion that occurs when each block is run independently against
+broad AI/ML or arthroplasty term sets.  Free tier; no API key required.
 """
 
 from __future__ import annotations
@@ -26,31 +27,33 @@ class OpenAlexSearch(SearchSource):
     def run(self, config, ctx: SearchContext) -> list[dict]:
         filter_str = self._build_filter(ctx.issns, ctx.from_year, ctx.to_year)
 
-        blocks: list[tuple[str, list[str]]] = []
-        if getattr(config, "BLOCK_A_TERMS", None):
-            blocks.append(("block_a", config.BLOCK_A_TERMS))
-        if getattr(config, "BLOCK_B_TERMS", None):
-            blocks.append(("block_b", config.BLOCK_B_TERMS))
-        if not blocks:
-            return []  # nothing to search
+        a_terms = getattr(config, "BLOCK_A_TERMS", None) or []
+        b_terms = getattr(config, "BLOCK_B_TERMS", None) or []
+        c_terms = getattr(config, "BLOCK_C_TERMS", None) or []
+        if not a_terms and not b_terms:
+            return []
 
-        rows: list[dict] = []
-        for label, terms in blocks:
-            query = " OR ".join(f'"{t}"' for t in terms)
-            print(f"  OpenAlex {label}: ", end="", flush=True)
-            works = self._fetch_all(query, filter_str, ctx.mailto)
-            print(f"{len(works)} results", flush=True)
-            for w in works:
-                rows.append(self._work_to_row(w, label))
-        return rows
+        # Build ANDed query across all blocks: (A) AND (B) AND (C ...)
+        parts: list[str] = []
+        if a_terms:
+            parts.append("(" + " OR ".join(f'"{t}"' for t in a_terms) + ")")
+        if b_terms:
+            parts.append("(" + " OR ".join(f'"{t}"' for t in b_terms) + ")")
+        if c_terms:
+            parts.append("(" + " OR ".join(f'"{t}"' for t in c_terms) + ")")
+        query = " AND ".join(parts)
+
+        print("  OpenAlex combined: ", end="", flush=True)
+        works = self._fetch_all(query, filter_str, ctx.mailto)
+        print(f"{len(works)} results", flush=True)
+        return [self._work_to_row(w, "combined") for w in works]
 
     def _build_filter(self, issns: list[str], from_year: int,
                       to_year: int) -> str:
-        return (
-            f"primary_location.source.issn:{'|'.join(issns)},"
-            f"publication_year:{from_year}-{to_year},"
-            f"type:article"
-        )
+        parts = [f"publication_year:{from_year}-{to_year}", "type:article"]
+        if issns:
+            parts.insert(0, f"primary_location.source.issn:{'|'.join(issns)}")
+        return ",".join(parts)
 
     def _fetch_all(self, query: str, filter_str: str, mailto: str) -> list[dict]:
         all_works: list[dict] = []

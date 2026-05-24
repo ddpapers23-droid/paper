@@ -224,6 +224,74 @@ def test_wos_title_fallback_on_doi_alias() -> None:
     )
 
 
+def test_core_abstract() -> None:
+    """CORE Aggregate API returns an abstract for an OA DOI."""
+    import urllib.parse
+    doi = KNOWN_DOIS["core"]
+    query = urllib.parse.quote(f'doi:"{doi}"', safe="")
+    url = f"https://api.core.ac.uk/v3/search/works?q={query}&limit=1"
+    headers: dict[str, str] = {}
+    try:
+        # Use the API key if configured; fall back to unauthenticated.
+        from tests.live.conftest import require_config
+        key = require_config("core", "api_key", env="CORE_API_KEY")
+        headers["Authorization"] = f"Bearer {key}"
+    except pytest.skip.Exception:
+        pass  # unauthenticated is fine; rate-limited but functional
+    status, body, _ = http_get(url, headers=headers, timeout=30)
+    if status == 0:
+        pytest.skip("Network unreachable for CORE API")
+    assert status == 200, f"CORE API returned {status}"
+    data = json.loads(body)
+    results = data.get("results") or []
+    if not results:
+        pytest.skip(
+            f"CORE has no indexed record for DOI {doi}. "
+            f"Try a different DOI in KNOWN_DOIS['core']."
+        )
+    abstract = (results[0].get("abstract") or "").strip()
+    if not abstract:
+        pytest.skip(
+            f"CORE record for {doi} has no abstract field. "
+            f"Try a different DOI in KNOWN_DOIS['core']."
+        )
+    assert len(abstract) > 60, (
+        f"CORE abstract for {doi} is suspiciously short ({len(abstract)} chars): "
+        f"{abstract!r}"
+    )
+
+
+def test_europe_pmc_abstract() -> None:
+    """Europe PMC REST API returns an abstractText for a known biomedical DOI."""
+    doi = KNOWN_DOIS["europe_pmc"]
+    query = urllib.parse.quote(f'DOI:"{doi}"', safe="")
+    url = (
+        f"https://www.ebi.ac.uk/europepmc/webservices/rest/search"
+        f"?query={query}&resultType=core&format=json&pageSize=1"
+    )
+    status, body, _ = http_get(url, timeout=30)
+    if status == 0:
+        pytest.skip("Network unreachable for Europe PMC API")
+    assert status == 200, f"Europe PMC returned {status}"
+    data = json.loads(body)
+    results = (data.get("resultList") or {}).get("result") or []
+    if not results:
+        pytest.skip(
+            f"Europe PMC has no record for DOI {doi}. "
+            f"Try a different DOI in KNOWN_DOIS['europe_pmc']."
+        )
+    abstract = (results[0].get("abstractText") or "").strip()
+    if not abstract:
+        pytest.skip(
+            f"Europe PMC record for {doi} has no abstractText. "
+            f"Try a different DOI in KNOWN_DOIS['europe_pmc']."
+        )
+    assert len(abstract) > 60, (
+        f"Europe PMC abstract for {doi} is suspiciously short ({len(abstract)} chars): "
+        f"{abstract!r}"
+    )
+
+
 def test_openalex_grobid_abstract() -> None:
     """OpenAlex GROBID TEI XML has an <abstract> element for many works."""
     doi = KNOWN_DOIS["openalex_grobid"]

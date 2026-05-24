@@ -67,8 +67,9 @@ directory — not checked in because it references machine-local paths).
 
 ### Skills
 
-- **S3** — add an explicit "Companion skills" section to
-  `critic-loop`.
+- **S3** ✓ — add an explicit "Companion skills" section to
+  `critic-loop`. **Done** — added before "Argument parsing" in
+  `skills/critic-loop/SKILL.md`.
   **Why deferred:** the skill body already references
   `empirical-integrity` in prose (five mentions in
   `skills/critic-loop/SKILL.md` — e.g. line 141 on the Step 1 test
@@ -81,8 +82,9 @@ directory — not checked in because it references machine-local paths).
   rule-book), and `manuscript-revision` (doctrine).
   Files: [skills/critic-loop/SKILL.md](skills/critic-loop/SKILL.md).
 
-- **S4** — add reverse cross-link from `manuscript-revision` to
-  `academic-style`.
+- **S4** ✓ — add reverse cross-link from `manuscript-revision` to
+  `academic-style`. **Done** — added to "See also" in
+  `skills/manuscript-revision/SKILL.md`.
   **Why deferred:** `academic-style/SKILL.md:3,22` already delegates
   to `manuscript-revision`; only the reverse direction is missing.
   Users who skip `academic-style` incur extra critic iterations.
@@ -91,8 +93,10 @@ directory — not checked in because it references machine-local paths).
   the "before the loop" companion.
   Files: [skills/manuscript-revision/SKILL.md](skills/manuscript-revision/SKILL.md).
 
-- **R9** — document `zotero-mcp-server[scite,semantic]` optional
-  extras in the setup wizard.
+- **R9** ✓ — document `zotero-mcp-server[scite,semantic]` optional
+  extras in the setup wizard. **Done** — `install_note` updated +
+  connected-Zotero hint printed in `_print_mcp_summary`
+  (`scripts/setup/wizard.py`).
   **Why deferred:** users install the base package and never discover
   semantic search or retraction alerts. R5 (done) depends on Scite
   being available — the wizard could install the extra automatically
@@ -104,8 +108,10 @@ directory — not checked in because it references machine-local paths).
 
 ### Scripts
 
-- **P1** — extract shared `LogManager` for the three `enrich_*`
-  orchestrators.
+- **P1** ✓ — extract shared `LogManager` for the three `enrich_*`
+  orchestrators. **Done** — `scripts/pipelines/shared_orchestrators.py`
+  with `LogManager`; all three enrich scripts use it via thin wrappers;
+  12 unit tests in `tests/unit/test_shared_orchestrators.py`.
   **Why deferred:** `core.config_loader` already handles the
   config-loading side (all three scripts import `get` / `require`
   from it). What remains reimplemented in each of
@@ -122,7 +128,10 @@ directory — not checked in because it references machine-local paths).
   tests should drive this — no behaviour change.
   Files: [scripts/pipelines/enrich_abstracts.py](scripts/pipelines/enrich_abstracts.py), [scripts/pipelines/enrich_pdfs.py](scripts/pipelines/enrich_pdfs.py), [scripts/pipelines/enrich_dois.py](scripts/pipelines/enrich_dois.py).
 
-- **P5** — shared credential-check helper for searchers.
+- **P5** ✓ — shared credential-check helper for searchers. **Done
+  (already shipped)** — all four searchers implement `credentials_error()`
+  in `searchers/base.py`'s ABC; WoS bare-KeyError, Semantic Scholar
+  silent-empty, and OpenAlex no-key cases already handled correctly.
   **Why deferred:** each of `scopus.py`, `wos.py`, `openalex.py`,
   `semantic_scholar.py` re-implements "API key missing → raise"
   logic with inconsistent error regimes. Concrete cases to cover:
@@ -137,7 +146,10 @@ directory — not checked in because it references machine-local paths).
   each searcher to use it.
   Files: [scripts/pipelines/searchers/base.py](scripts/pipelines/searchers/base.py), [scripts/pipelines/searchers/](scripts/pipelines/searchers/).
 
-- **P7** — shared log-CSV schemas.
+- **P7** ✓ — shared log-CSV schemas. **Done** — `ABSTRACT_LOG_FIELDS`,
+  `PDF_LOG_FIELDS`, `DOI_LOG_FIELDS` added to
+  `scripts/pipelines/log_schemas.py`; enrich scripts import via alias.
+  Canonical field order fixed (PDF `source`/`status` swap resolved).
   **Why deferred:** log schemas are defined inline in each orchestrator
   but downstream templates (e.g. `test_systematic_review.py`) expect
   specific columns. Adding a column risks silent template drift.
@@ -163,8 +175,11 @@ directory — not checked in because it references machine-local paths).
   for partial flush on SIGINT. Thread-safety tests.
   Files: [scripts/pipelines/abstract_screen.py](scripts/pipelines/abstract_screen.py), [scripts/pipelines/fulltext_code.py](scripts/pipelines/fulltext_code.py), [scripts/pipelines/zotero_io.py](scripts/pipelines/zotero_io.py).
 
-- **P12** — Setup wizard paste-in command breaks when two plugin
-  versions are cached side-by-side.
+- **P12** ✓ — Setup wizard paste-in command breaks when two plugin
+  versions are cached side-by-side. **Done** — skill uses
+  `${CLAUDE_PLUGIN_ROOT}`, `config_loader.require()` uses
+  `Path(__file__)`, regression test in
+  `tests/unit/test_setup_skill_no_glob.py`.
   **Why deferred:** ergonomic failure on a happy-path command — it
   bites whenever Claude Code keeps an older plugin version cached
   alongside the new one (common after `/plugin marketplace
@@ -202,8 +217,14 @@ directory — not checked in because it references machine-local paths).
      prevents future drift back to the broken pattern.
   Files: [skills/setup/SKILL.md](skills/setup/SKILL.md), [scripts/core/config_loader.py](scripts/core/config_loader.py), [tests/unit/](tests/unit/).
 
-- **P11** — Elsevier ScienceDirect PDF fetcher silently caches
-  1-page previews when entitlement is partial.
+- **P11** ✓ — Elsevier ScienceDirect PDF fetcher silently caches
+  1-page previews when entitlement is partial. **Done** — preview
+  header detection + XML fallback in `fetchers/sciencedirect.py`;
+  `ELSEVIER_PREVIEW_BLOCKED` cause in `pdf_fetch_log.py` wired
+  through `enrich_pdfs._try_cascade`; audit ordered display updated;
+  unit tests in `tests/unit/test_sciencedirect_preview_fallback.py`
+  and `tests/unit/test_pdf_fetch_log.py`; live tests in
+  `tests/live/test_sciencedirect_preview_fallback.py`.
   **Why deferred:** silent correctness failure, not a crash —
   surfaced only because the user noticed 39 papers with <10K
   extracted chars after full-text coding had already started.
@@ -248,8 +269,11 @@ directory — not checked in because it references machine-local paths).
      fallback path also needs its own live coverage entry.
   Files: [scripts/pipelines/fetchers/sciencedirect.py](scripts/pipelines/fetchers/sciencedirect.py), [scripts/pipelines/audit_zotero_library.py](scripts/pipelines/audit_zotero_library.py), [tests/live/](tests/live/).
 
-- **P9** — migrate `test_live_coverage.py` from `legacy/` to
-  `fetchers/*.py`.
+- **P9** ✓ — migrate `test_live_coverage.py` from `legacy/` to
+  `fetchers/*.py`. **Done** — new `_fetcher_names()` helper walks
+  `fetchers/*.py` with regex (no imports); `_ABSTRACT_ALIAS` and
+  `_PDF_ALIAS` dicts replace the old legacy-function alias maps.
+  `legacy/` can now be deleted when ready.
   **Why deferred:** the live-coverage guard currently walks
   `legacy/fetch_abstracts.py` and `legacy/attach_pdfs.py` for the
   canonical list of sources ([tests/unit/test_live_coverage.py:103-110](tests/unit/test_live_coverage.py#L103-L110)).
@@ -267,9 +291,11 @@ directory — not checked in because it references machine-local paths).
 
 ### Reference-project adoptions
 
-- **R1 + R2 + R3** — Concession Threshold Protocol, frame-lock
+- **R1 + R2 + R3** ✓ — Concession Threshold Protocol, frame-lock
   detection, and explicit read-only constraint on critic subagents
-  (from `Imbad0202/academic-research-skills`).
+  (from `Imbad0202/academic-research-skills`). **Done** — new
+  "Anti-sycophancy protocols" section (R1, R2) and read-only block in
+  generic preamble (R3) in `skills/critic-loop/SKILL.md`.
   **Why deferred:** R1 directly targets the sycophancy failure mode
   our four-critic loop is vulnerable to. R2 is a one-line rule. R3
   formalizes behaviour we already rely on.
@@ -293,26 +319,22 @@ directory — not checked in because it references machine-local paths).
   become a kitchen-sink.
   Files: [scripts/pipelines/zotero_io.py](scripts/pipelines/zotero_io.py).
 
-- **R10 + R11 (partial)** — finish the OA fallback chain from
-  `openags/paper-search-mcp`. PMC and Unpaywall are already live
-  ([fetchers/pmc.py](scripts/pipelines/fetchers/pmc.py),
-  [fetchers/unpaywall.py](scripts/pipelines/fetchers/unpaywall.py))
-  and [fetchers/\_\_init\_\_.py:62](scripts/pipelines/fetchers/__init__.py#L62)
-  sketches the cascade order. What remains is **CORE** and
-  **Europe PMC** as new `AbstractFetcher` / `PdfFetcher` providers,
-  plus an audit of the cascade ordering in `fetchers/__init__.py`.
-  Each new provider must ship with a matching file under
-  `tests/live/` (enforced by `tests/live/test_live_coverage.py`).
-  Files: [scripts/pipelines/fetchers/](scripts/pipelines/fetchers/).
+- ✓ **R10 + R11** — CORE and Europe PMC added as `AbstractFetcher` /
+  `PdfFetcher` providers (`fetchers/core.py`, `fetchers/europe_pmc.py`).
+  Both registered in the cascade (`abstract_sources` after OpenAlex;
+  `pdf_sources` after Unpaywall). `CORE_API_KEY` KeySpec + `_verify_core`
+  added to wizard.py. Live tests in `test_abstract_endpoints.py`,
+  `test_pdf_endpoints.py`, `test_auth_workflows.py`. Guard maps
+  `_ABSTRACT_ALIAS` / `_PDF_ALIAS` updated.
 
 ---
 
 ## Tier 4 — do if convenient
 
-- **S5** — expand `skills/setup/SKILL.md` (101 lines currently) with
-  guidance on rotating a single API key, re-running the wizard, and
-  auditing what's already configured. The wizard is idempotent but
-  the skill doesn't advertise it.
+- ✓ **S5** — "Key rotation and re-running the wizard" section added to
+  `skills/setup/SKILL.md`: covers rotating, adding, and auditing keys
+  by re-running the idempotent wizard; explains why the config file
+  cannot be read directly.
 - **P6 (near-closed)** — standardize on `http_client.get_json()`
   across all fetchers. Only two direct `session.get()` calls remain
   outside `http_client`, both on non-content paths:
@@ -321,12 +343,12 @@ directory — not checked in because it references machine-local paths).
   [fetchers/browser/connector.py:655](scripts/pipelines/fetchers/browser/connector.py#L655)
   (connector ping). Not worth a dedicated pass; tidy opportunistically
   if touching those files.
-- **P8** — CI guard that fails if `--legacy-browser` flag is removed
-  but `legacy/` directory still exists, or vice versa. Currently a
-  four-item checklist in `legacy/README.md` that nothing enforces.
-- **R4** — IRON RULE tables in long SKILL.mds
-  (`systematic-review/SKILL.md` is >700 lines). Anti-pattern / Why
-  it fails / Correct behaviour rows as an anti-context-rot device.
+- ✓ **P8** — closed as not applicable: `legacy/` directory was already
+  removed from the repo; no CI guard needed.
+- ✓ **R4** — IRON RULE table added to `skills/systematic-review/SKILL.md`
+  just before "Red flags": 8 rows covering hardcoded keys, temperature
+  locking, OpenAlex abstract source, manual counts, config.toml access,
+  improvised scripts, PDF magic-byte check, and predatory-paper handling.
 - **R7 (narrowed)** — port `find_duplicates` detection into
   `audit_zotero_library.py` so the audit report surfaces duplicate
   candidates offline. The merge half is already ported —
@@ -341,31 +363,17 @@ directory — not checked in because it references machine-local paths).
   Jump to coding-relevant sections without reading the whole PDF.
   Requires restructuring the LLM-input pipeline (currently sends the
   whole PDF up to a soft cap). Tier 3 work in practice.
-- **S7** — add missing `Trigger phrases:` blocks to three skills.
-  CLAUDE.md says every procedural skill follows the shape
-  "Use when … + Trigger phrases: … + Do NOT use for X". The
-  description lines in
-  [skills/academic-style/SKILL.md](skills/academic-style/SKILL.md),
-  [skills/empirical-integrity/SKILL.md](skills/empirical-integrity/SKILL.md),
-  and [skills/setup/SKILL.md](skills/setup/SKILL.md) lack the
-  `Trigger phrases:` block. Breaking the shape risks wrong-skill
-  triggering. One-line description edit per skill; no body changes
-  needed.
-- **P10** — drop the legacy-layout branch from the
-  `test_systematic_review.py` template. The template defines
-  `ABSTRACT_SCRIPT` / `FULLTEXT_SCRIPT` paths and Test 8 silently
-  passes if neither local copy exists ([templates/test_systematic_review.py:58-65](templates/test_systematic_review.py#L58-L65),
-  [:160-170](templates/test_systematic_review.py#L160-L170)). Now
-  that SR projects invoke plugin scripts by path, the silent-pass
-  branch adds cognitive load without catching anything. Delete the
-  branch or assert-fail if a local copy is found (indicating an
-  outdated project layout).
-- **M1** — add `keywords` to `.claude-plugin/plugin.json` for
-  marketplace search. The manifest currently has only `name`,
-  `version`, `description`, `author`, `license`, `homepage`. An
-  array like `["systematic-review", "zotero", "citations",
-  "manuscript", "critic-loop", "academic"]` would improve
-  discoverability in `/plugin marketplace`.
+- ✓ **S7** — "Do NOT use" delegation rules added to
+  `skills/empirical-integrity/SKILL.md` and `skills/setup/SKILL.md`
+  descriptions (academic-style already had them). All three skills now
+  carry the full "Use when … + Trigger phrases: … + Do NOT use for X"
+  shape required by CLAUDE.md.
+- ✓ **P10** — `test_temperature_zero_pinned` in
+  `templates/test_systematic_review.py` now fails (not silently passes)
+  when a local copy of `abstract_screen.py` / `fulltext_code.py` is
+  found, signalling an outdated project layout. Comment updated.
+- ✓ **M1** — already done: `keywords` array present in
+  `.claude-plugin/plugin.json` since a prior session.
 
 ---
 

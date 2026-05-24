@@ -43,7 +43,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import csv
 import os
 import subprocess
 import sys
@@ -65,6 +64,8 @@ import http_client  # noqa: E402
 import pdf_fetch_log  # noqa: E402
 import zotero_io  # noqa: E402
 from core.config_loader import get, require  # noqa: E402
+from log_schemas import PDF_LOG_FIELDS as LOG_FIELDS  # noqa: E402
+from shared_orchestrators import LogManager  # noqa: E402
 
 DEFAULT_LOG_CSV = os.path.join("output", "pdf_attach_log.csv")
 DEFAULT_CACHE_DIR = os.path.join("output", "pdf_cache")
@@ -72,8 +73,6 @@ DEFAULT_CACHE_DIR = os.path.join("output", "pdf_cache")
 # audit_zotero_library reads it to group failures by cause and suggest
 # FE codes. Same `output/` dir so users see both files together.
 DEFAULT_FAILURE_LOG_CSV = os.path.join("output", "pdf_fetch_log.csv")
-
-LOG_FIELDS = ["run_date", "item_key", "doi", "title", "status", "source"]
 
 
 @dataclass
@@ -83,6 +82,7 @@ class Config:
     wiley_tdm_token: str = ""
     semantic_scholar_api_key: str = ""
     crossref_mailto: str = ""
+    core_api_key: str = ""
 
 
 def _load_config() -> Config:
@@ -94,28 +94,20 @@ def _load_config() -> Config:
             "semantic_scholar", "api_key", env="SEMANTIC_SCHOLAR_API_KEY",
         ),
         crossref_mailto=get("crossref", "mailto", env="CROSSREF_MAILTO"),
+        core_api_key=get("core", "api_key", env="CORE_API_KEY"),
     )
 
 
+def _log(path: str) -> LogManager:
+    return LogManager(path, LOG_FIELDS, done_status="attached")
+
+
 def _open_log(path: str):
-    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    is_new = not os.path.exists(path)
-    fh = open(path, "a", newline="", encoding="utf-8")
-    writer = csv.DictWriter(fh, fieldnames=LOG_FIELDS)
-    if is_new:
-        writer.writeheader()
-    return fh, writer
+    return _log(path).open_writer()
 
 
 def _load_done_dois(path: str) -> set[str]:
-    if not os.path.exists(path):
-        return set()
-    with open(path, newline="", encoding="utf-8") as f:
-        return {
-            (r.get("doi") or "").strip().lower()
-            for r in csv.DictReader(f)
-            if r.get("status") == "attached"
-        }
+    return _log(path).already_done()
 
 
 def _run_browser_legacy(args: argparse.Namespace) -> int:
@@ -1116,6 +1108,7 @@ def _try_cascade(
     item_key = item.get("key", "") or d.get("key", "") or ""
     last_source = ""
     raised_exception = False
+    preview_blocked = False
     for src in sources:
         last_source = src.name
         try:
@@ -1127,19 +1120,23 @@ def _try_cascade(
             raised_exception = True
             continue
         if result is None:
+            if getattr(src, "_preview_blocked", False):
+                preview_blocked = True
             continue
         path, _ = result
         return path, src.name
 
     # Cascade exhausted. Classify and persist if a log path was given.
     if failure_log_path and item_key:
-        # Best-effort cause: out-of-scope item types resolve regardless;
-        # otherwise lean on UNAVAILABLE for "all fetchers returned None"
-        # vs NETWORK_ERROR when an exception was raised at least once
-        # (transport problem rather than missing PDF).
+        # Priority order: out-of-scope beats everything (item won't ever
+        # succeed); then Elsevier preview-blocked (PDF exists but TDM
+        # entitlement gap — suggests ILL, not FE6); then network errors
+        # (transient); else UNAVAILABLE (generic "not found").
         cause: pdf_fetch_log.FailureCause | None = None
         if item_type in pdf_fetch_log.DEFAULT_OUT_OF_SCOPE_TYPES:
             cause = pdf_fetch_log.FailureCause.OUT_OF_SCOPE
+        elif preview_blocked:
+            cause = pdf_fetch_log.FailureCause.ELSEVIER_PREVIEW_BLOCKED
         elif raised_exception:
             cause = pdf_fetch_log.FailureCause.NETWORK_ERROR
         try:

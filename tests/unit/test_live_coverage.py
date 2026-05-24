@@ -2,9 +2,8 @@
 
 Runs on every `pytest` invocation (no marker). If a new entry is
 added to `publishers.registry.DEFAULT_PUBLISHERS`, a new `KeySpec`
-added to `scripts/setup/wizard.py:KEYS`, or a new `fetch_from_*`
-function added to `scripts/pipelines/legacy/fetch_abstracts.py`
-without a matching live test being added at the same time, this
+added to `scripts/setup/wizard.py:KEYS`, or a new fetcher class added
+to `scripts/pipelines/fetchers/*.py` without a matching live test, this
 test fails with an actionable message.
 
 The policy is documented in the project memory at
@@ -14,6 +13,13 @@ The policy is documented in the project memory at
 > registry entry, KeySpec, or source module must ship with a matching
 > live test; a default-run guard test enforces the invariant at PR
 > time.
+
+P9 migration note: the abstract / PDF source guards previously walked
+`legacy/fetch_abstracts.py` and `legacy/attach_pdfs.py` for `fetch_from_*`
+/ `fetch_*_pdf` function names. They now walk `fetchers/*.py` and
+enumerate `AbstractFetcher` / `PdfFetcher` subclasses by their `name`
+class attribute. The legacy/ scripts can be deleted once no other guard
+or skill references them.
 """
 
 from __future__ import annotations
@@ -96,50 +102,96 @@ def test_every_keyspec_has_an_auth_test() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Helpers — enumerate fetcher subclasses from source files
+# ---------------------------------------------------------------------------
+
+FETCHERS_DIR = REPO / "scripts" / "pipelines" / "fetchers"
+
+# Files that define base classes or helpers, not concrete sources.
+_FETCHER_NON_SOURCES = frozenset({
+    "base.py", "_title_match.py", "doi_resolver.py", "library_resolver.py",
+    "__init__.py",
+})
+
+
+def _fetcher_names(base_cls: str) -> list[tuple[str, str]]:
+    """Walk fetchers/*.py and return (filename, name) for every class that
+    lists *base_cls* in its inheritance list and declares a ``name`` attr.
+
+    Parses source with regex — no imports, no side effects — so this works
+    in the unit-test environment where optional dependencies are absent.
+    The ``fetchers/browser/`` sub-package is intentionally excluded;
+    browser publisher coverage is enforced by the registry guard above.
+    """
+    results: list[tuple[str, str]] = []
+    cls_re = re.compile(
+        rf"^class\s+\w+\s*\([^)]*{re.escape(base_cls)}[^)]*\)\s*:",
+        re.MULTILINE,
+    )
+    name_re = re.compile(r'^\s{4}name\s*=\s*"([^"]+)"', re.MULTILINE)
+    for py_file in sorted(FETCHERS_DIR.glob("*.py")):
+        if py_file.name in _FETCHER_NON_SOURCES:
+            continue
+        src = py_file.read_text(encoding="utf-8")
+        for cls_match in cls_re.finditer(src):
+            # Search for the name attribute in the first 400 chars of the
+            # class body (before any method definitions).
+            snippet = src[cls_match.end(): cls_match.end() + 400]
+            name_match = name_re.search(snippet)
+            if name_match:
+                results.append((py_file.name, name_match.group(1)))
+    return results
+
+
+# ---------------------------------------------------------------------------
 # Abstract sources ↔ test_abstract_endpoints.py
 # ---------------------------------------------------------------------------
 
+# Maps fetcher source name → expected live-test function name.
+# None = explicitly not a source requiring its own abstract test
+# (e.g. PDF-only sources that inherit PdfFetcher but not AbstractFetcher).
+# Add a new row whenever a new AbstractFetcher subclass is added.
+_ABSTRACT_ALIAS: dict[str, str | None] = {
+    "core": "test_core_abstract",
+    "crossref": "test_crossref_abstract",
+    "europe_pmc": "test_europe_pmc_abstract",
+    "openalex": "test_openalex_grobid_abstract",
+    "sciencedirect": "test_sciencedirect_abstract",
+    "scopus": "test_scopus_abstract",
+    "semantic_scholar": "test_semantic_scholar_abstract",
+    "wos": "test_wos_abstract_direct_doi",
+}
+
 
 def test_every_abstract_source_has_a_live_test() -> None:
-    """Each `fetch_from_*` function in legacy/fetch_abstracts.py has a matching test.
+    """Every AbstractFetcher subclass in fetchers/*.py has a matching live test.
 
-    The legacy script moved to `scripts/pipelines/legacy/` in v0.3.1.
-    When the refactored `fetchers/*.py` classes become the coverage
-    source of truth, this function (and `test_every_pdf_source_...`
-    below) should walk them instead — then the legacy/ directory can
-    be deleted.
+    The source list is derived from the refactored fetcher classes (P9),
+    not from legacy/fetch_abstracts.py. Alias map lives in
+    _ABSTRACT_ALIAS above — update it when a new fetcher is added.
     """
-    fetch_source = _read(
-        REPO / "scripts" / "pipelines" / "legacy" / "fetch_abstracts.py"
-    )
-    sources = set(re.findall(r"^def (fetch_from_\w+)\s*\(", fetch_source, re.MULTILINE))
-
+    sources = _fetcher_names("AbstractFetcher")
     abstract_tests = _read(REPO / "tests" / "live" / "test_abstract_endpoints.py")
 
-    # Known aliases between source-function names and test names.
-    # Update this mapping when you rename a source or its test.
-    alias: dict[str, str] = {
-        "fetch_from_crossref": "test_crossref_abstract",
-        "fetch_from_semantic_scholar": "test_semantic_scholar_abstract",
-        "fetch_from_semantic_scholar_by_title": "test_semantic_scholar_abstract",
-        "fetch_from_scopus": "test_scopus_abstract",
-        "fetch_from_sciencedirect": "test_sciencedirect_abstract",
-        "fetch_from_openalex_grobid": "test_openalex_grobid_abstract",
-    }
-
     missing = []
-    for src in sorted(sources):
-        expected_test = alias.get(src)
-        if expected_test is None:
+    for filename, name in sources:
+        if name not in _ABSTRACT_ALIAS:
             missing.append(
-                f"{src} (no alias — add one to test_live_coverage.py or "
-                f"rename the source)"
+                f"{filename}:{name} not in _ABSTRACT_ALIAS — add an entry "
+                f"in test_live_coverage.py (map to test name or None if "
+                f"no abstract endpoint)."
             )
-        elif expected_test not in abstract_tests:
-            missing.append(f"{src} → expected {expected_test}")
+            continue
+        expected = _ABSTRACT_ALIAS[name]
+        if expected and expected not in abstract_tests:
+            missing.append(
+                f"{filename}:{name} → expected {expected} in "
+                f"test_abstract_endpoints.py"
+            )
     assert not missing, (
-        f"Abstract sources without a matching live test: {missing}. "
-        f"Add a corresponding test to tests/live/test_abstract_endpoints.py."
+        f"AbstractFetcher sources without a matching live test: {missing}. "
+        f"Add a test to tests/live/test_abstract_endpoints.py and update "
+        f"_ABSTRACT_ALIAS in test_live_coverage.py."
     )
 
 
@@ -147,47 +199,47 @@ def test_every_abstract_source_has_a_live_test() -> None:
 # PDF sources ↔ test_pdf_endpoints.py
 # ---------------------------------------------------------------------------
 
+# Maps fetcher source name → expected live-test function name.
+# None = explicitly exempt (generic helper / not a standalone source).
+# Add a new row whenever a new PdfFetcher subclass is added.
+_PDF_ALIAS: dict[str, str | None] = {
+    "core": "test_core_pdf_download_url",
+    "crossref": "test_crossref_tdm_link_present",
+    "europe_pmc": "test_europe_pmc_pdf",
+    "openalex": "test_openalex_content_api_returns_pdf_bytes",
+    "sciencedirect": "test_elsevier_sciencedirect_reachable",
+    "pubmed_central": "test_pmc_doi_to_pmcid_resolves",
+    "springer": "test_springer_reachable",
+    "unpaywall": "test_unpaywall_returns_pdf_url",
+    "wiley": "test_wiley_tdm_downloads_pdf",
+}
+
 
 def test_every_pdf_source_has_a_live_test() -> None:
-    """Each `fetch_*_pdf` function in legacy/attach_pdfs.py has a matching test.
+    """Every PdfFetcher subclass in fetchers/*.py has a matching live test.
 
-    See note in `test_every_abstract_source_has_a_live_test` about the
-    migration path; this function is the PDF-cascade counterpart.
+    The source list is derived from the refactored fetcher classes (P9),
+    not from legacy/attach_pdfs.py. Alias map lives in _PDF_ALIAS above.
     """
-    attach_source = _read(
-        REPO / "scripts" / "pipelines" / "legacy" / "attach_pdfs.py"
-    )
-    sources = set(re.findall(r"^def (fetch_\w+_pdf)\s*\(", attach_source, re.MULTILINE))
-
+    sources = _fetcher_names("PdfFetcher")
     pdf_tests = _read(REPO / "tests" / "live" / "test_pdf_endpoints.py")
 
-    # Source-function → expected test name. The test may also cover the
-    # source indirectly; we accept any test mentioning the source label.
-    alias: dict[str, str] = {
-        "fetch_elsevier_pdf": "test_elsevier_sciencedirect_reachable",
-        "fetch_springer_pdf": "test_springer_reachable",  # not yet implemented
-        "fetch_crossref_tdm_pdf": "test_crossref_tdm_link_present",
-        "fetch_pmc_pdf": "test_pmc_doi_to_pmcid_resolves",
-        "fetch_pdf_from_url": None,  # generic helper, not a source
-        "fetch_unpaywall_pdf": "test_unpaywall_returns_pdf_url",
-        "fetch_openalex_content_pdf": "test_openalex_content_api_returns_pdf_bytes",
-        "fetch_openalex_pdf": "test_openalex_oa_url_present",
-    }
-
     missing = []
-    for src in sorted(sources):
-        if src not in alias:
+    for filename, name in sources:
+        if name not in _PDF_ALIAS:
             missing.append(
-                f"{src} (no alias — add one to test_live_coverage.py or "
-                f"write a matching test)"
+                f"{filename}:{name} not in _PDF_ALIAS — add an entry in "
+                f"test_live_coverage.py (map to test name or None if exempt)."
             )
             continue
-        expected_test = alias[src]
-        if expected_test is None:
-            continue  # explicitly not a source
-        if expected_test not in pdf_tests:
-            missing.append(f"{src} → expected {expected_test}")
+        expected = _PDF_ALIAS[name]
+        if expected and expected not in pdf_tests:
+            missing.append(
+                f"{filename}:{name} → expected {expected} in "
+                f"test_pdf_endpoints.py"
+            )
     assert not missing, (
-        f"PDF sources without a matching live test: {missing}. "
-        f"Add a corresponding test to tests/live/test_pdf_endpoints.py."
+        f"PdfFetcher sources without a matching live test: {missing}. "
+        f"Add a test to tests/live/test_pdf_endpoints.py and update "
+        f"_PDF_ALIAS in test_live_coverage.py."
     )

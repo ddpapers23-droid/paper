@@ -74,6 +74,12 @@ KNOWN_DOIS: dict[str, str] = {
     "wos_title_fallback_doi": "10.5465/19416520.2014.875669",
     "wos_title_fallback_title": "Putting Framing in Perspective: A Review of Framing and Frame Analysis",
 
+    # CORE aggregate API
+    "core": "10.1371/journal.pone.0012345",           # PLOS ONE — indexed by CORE with abstract + download URL
+
+    # Europe PMC (biomedical / life science OA papers)
+    "europe_pmc": "10.1371/journal.pone.0012345",     # PLOS ONE — in Europe PMC with abstractText + PMCID
+
     # Browser-based publishers (CF-gated; require institutional access)
     "sage":     "10.1177/1042258717725967",           # ETP 2018
     "emerald":  "10.1108/IJEBR-08-2019-0513",         # IJEBR 2020
