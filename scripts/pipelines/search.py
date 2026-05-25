@@ -124,11 +124,22 @@ def main() -> int:
     args = parser.parse_args()
 
     cfg = _load_config(args.config)
+    _mailto = os.environ.get("CROSSREF_MAILTO", "")
+    if not _mailto:
+        try:
+            _cfg_root = Path(__file__).resolve().parent.parent
+            if str(_cfg_root) not in sys.path:
+                sys.path.insert(0, str(_cfg_root))
+            from core.config_loader import get as _cfg_get
+            _mailto = _cfg_get("crossref", "mailto", env="CROSSREF_MAILTO")
+        except Exception:
+            pass
+
     ctx = SearchContext(
         from_year=cfg.FROM_YEAR,
         to_year=cfg.TO_YEAR,
         issns=list(cfg.JOURNALS.keys()),
-        mailto=os.environ.get("CROSSREF_MAILTO", ""),
+        mailto=_mailto,
     )
 
     registry = searchers_by_name()
