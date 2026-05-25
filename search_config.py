@@ -16,85 +16,96 @@ Usage:
 # 1. Time window
 # ---------------------------------------------------------------------------
 
-FROM_YEAR = 2016
+FROM_YEAR = 2020
 TO_YEAR   = 2026
 
 
 # ---------------------------------------------------------------------------
-# 2. Journal scope — {ISSN: (rating, full_title)}
+# 2. Journal scope
 #
-# The rating string is free-form (your project's own label — "ABS 4*",
-# "FT50", "UTD24", etc.). It appears in the metadata JSON and in
-# manuscript tables. The full title is displayed in logs.
-#
-# Sizing: a narrow domain-specific SR typically has 10–50 journals; a
-# broader business-and-management SR (e.g. ABS-2024 rank 4/4* plus
-# ABS-3 entrepreneurship) lands at ~150.
-#
-# ONE journal per line; comments are fine.
+# No ISSN filter for this SR — medical/clinical topic spanning neurology,
+# psychiatry, rehabilitation medicine, infectious disease, and general
+# medicine. Predatory journals excluded via Beall's list at import.
 # ---------------------------------------------------------------------------
 
-JOURNALS = {
-    # Entrepreneurship — replace with your discipline's list.
-    "1042-2587": ("ABS 4*", "Entrepreneurship Theory and Practice"),
-    "0883-9026": ("ABS 4*", "Journal of Business Venturing"),
-    "1932-4391": ("ABS 4",  "Strategic Entrepreneurship Journal"),
-    "0898-5626": ("ABS 3",  "Entrepreneurship and Regional Development"),
-    "0895-0067": ("ABS 3",  "Family Business Review"),
-    # Add as many as your scope demands. Typical SLRs: 10–150 journals.
-}
+JOURNALS = {}
 
 
 # ---------------------------------------------------------------------------
-# 3. Scopus / WoS queries — each entry is (label, scopus_query, wos_query)
+# 3. Scopus / WoS queries — (label, scopus_query, wos_query)
 #
-# Scopus stems phrase plurals automatically ("growth intention" matches
-# "growth intentions"). WoS does NOT — wildcard the tail of multi-word
-# phrases: `TS=("growth intenti*")` to cover both.
+# Scopus stems phrase plurals automatically. WoS does NOT — wildcards
+# added to phrase tails where plurals matter (dysfunct*, impairment*,
+# disabilit*, variabilit*, function*).
 #
-# Do not include ISSN or year filters — `search.py` adds them per-query
-# from JOURNALS and FROM_YEAR/TO_YEAR.
+# Combined logic: Block1 AND (Block2 OR Block3) AND Block4
+#   Block1 = Long COVID / PASC identity terms
+#   Block2 = Neurocognitive symptom terms
+#   Block3 = PEM / fatigue / dysautonomia terms
+#   Block4 = Functional impairment / disability outcome terms
 # ---------------------------------------------------------------------------
 
 QUERY_DEFS = [
     (
-        "Q1_narrow_self_selecting",
-        # Scopus — stemming handles plurals
-        'TITLE-ABS-KEY("growth intention" OR "growth aspiration" OR '
-        '"growth motivation")',
-        # WoS — phrase wildcards for plurals
-        'TS=("growth intenti*" OR "growth aspir*" OR "growth motivat*")',
+        "Q1_long_covid_cognitive_functional",
+        # Scopus
+        'TITLE-ABS-KEY("long COVID" OR "long-COVID" OR "post-COVID" OR '
+        '"post-acute COVID" OR "post-acute sequelae" OR "PASC" OR '
+        '"post-COVID-19 syndrome" OR "chronic COVID" OR "COVID long hauler*") '
+        'AND TITLE-ABS-KEY("brain fog" OR "cognitive dysfunction" OR '
+        '"cognitive impairment" OR "neurocognitive" OR "memory impairment" OR '
+        '"attention deficit" OR "processing speed" OR "executive function" OR '
+        '"concentration difficul*" OR "post-exertional malaise" OR "PEM" OR '
+        '"fatigue" OR "dysautonomia" OR "postural tachycardia" OR "POTS" OR '
+        '"orthostatic intolerance" OR "heart rate variability" OR '
+        '"autonomic dysfunction") '
+        'AND TITLE-ABS-KEY("functional impairment" OR "functional disability" OR '
+        '"disability" OR "activities of daily living" OR "ADL" OR '
+        '"work capacity" OR "return to work" OR "quality of life" OR '
+        '"patient-reported outcome*" OR "real-world function*")',
+        # WoS
+        'TS=("long COVID" OR "long-COVID" OR "post-COVID" OR '
+        '"post-acute COVID" OR "post-acute sequelae" OR "PASC" OR '
+        '"post-COVID-19 syndrome" OR "chronic COVID" OR "COVID long hauler*") '
+        'AND TS=("brain fog" OR "cognitive dysfunct*" OR '
+        '"cognitive impairment*" OR "neurocognitive" OR "memory impairment*" OR '
+        '"attention deficit*" OR "processing speed" OR "executive function*" OR '
+        '"concentration difficul*" OR "post-exertional malaise" OR "PEM" OR '
+        '"fatigue" OR "dysautonomia" OR "postural tachycardia" OR "POTS" OR '
+        '"orthostatic intolerance" OR "heart rate variabilit*" OR '
+        '"autonomic dysfunction") '
+        'AND TS=("functional impairment*" OR "functional disabilit*" OR '
+        '"disabilit*" OR "activities of daily living" OR "ADL" OR '
+        '"work capacity" OR "return to work" OR "quality of life" OR '
+        '"patient-reported outcome*" OR "real-world function*")',
     ),
-    (
-        "Q2_broad_concept_x_outcome",
-        # Motivational constructs AND growth-related outcomes
-        'TITLE-ABS-KEY(motivation OR intention OR aspiration) AND '
-        'TITLE-ABS-KEY("firm growth" OR "venture growth" OR "high-growth")',
-        'TS=(motivation OR intention OR aspiration) AND '
-        'TS=("firm growth" OR "venture growth" OR "high-growth")',
-    ),
-    # Add Q3, Q4, … as your strategy requires.
 ]
 
 
 # ---------------------------------------------------------------------------
-# 4. OpenAlex block terms (used only by search_openalex.py)
+# 4. OpenAlex block terms
 #
-# OpenAlex's `search=` parameter is relevance-ranked, so a single
-# combined query can miss papers highly relevant to one concept but
-# only weakly to another. The OpenAlex search script runs two block
-# queries (concepts + outcomes) separately, then merges and dedupes.
-# Leave empty ([]) if you are not using OpenAlex.
+# OpenAlex's search= parameter is relevance-ranked. Two block queries
+# (BLOCK_A = Long COVID + symptom identity, BLOCK_B = functional outcomes)
+# are run separately then merged and deduped.
 # ---------------------------------------------------------------------------
 
 BLOCK_A_TERMS = [
-    "motivation",
-    "intention",
-    "aspiration",
+    "long COVID",
+    "post-acute sequelae SARS-CoV-2",
+    "PASC",
+    "post-COVID syndrome",
+    "brain fog COVID",
+    "post-exertional malaise COVID",
+    "dysautonomia COVID",
+    "cognitive dysfunction long COVID",
 ]
 
 BLOCK_B_TERMS = [
-    "firm growth",
-    "venture growth",
-    "high-growth",
+    "functional impairment",
+    "patient-reported disability",
+    "return to work COVID",
+    "quality of life long COVID",
+    "activities of daily living COVID",
+    "neurocognitive assessment long COVID",
 ]
