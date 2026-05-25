@@ -89,3 +89,13 @@ When designing a new skill, pipeline module, or workflow, check these first — 
 - **[54yyyu/zotero-mcp](https://github.com/54yyyu/zotero-mcp)** — the Zotero MCP server this plugin depends on at runtime. Its source is a good reference when extending our Zotero handling: look here before building a new pyzotero helper or re-implementing a Zotero API call locally.
 - **[openags/paper-search-mcp](https://github.com/openags/paper-search-mcp)** — the multi-database paper-search MCP server this plugin depends on at runtime (Scopus, WoS, Google Scholar, Semantic Scholar, arXiv, bioRxiv, medRxiv, PubMed, Crossref, sci-hub). Registered by `scripts/setup/wizard.py`. Its source is the reference when adding a new search provider or extending our `scripts/pipelines/searchers/` with a pattern that already exists upstream.
 - **[Dianel555/paper-search-mcp-nodejs](https://github.com/Dianel555/paper-search-mcp-nodejs)** — a Node.js companion to `openags/paper-search-mcp` with broader publisher coverage (adds Wiley, Springer, ScienceDirect, IACR, Web of Science, Scopus on top of the arXiv / bioRxiv / medRxiv / PubMed / Google Scholar / Semantic Scholar / Crossref / sci-hub set). *Reference only* today — not registered by `scripts/setup/wizard.py`. Worth consulting when a paper-search gap the Python server doesn't cover maps to an endpoint this one does, and when considering whether to add it as a second runtime MCP alongside the Python server.
+
+## Zotero library
+
+- **Library:** group
+- **Group ID:** `6563745`
+- **Collection key:** *(none — created at import time via `--collection <name>`)*
+
+All pipeline scripts take `--group 6563745` and, where supported,
+`--collection <key>`. Do not set `ZOTERO_GROUP` as an env var —
+the canonical record is here.

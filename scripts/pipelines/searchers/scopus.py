@@ -52,8 +52,10 @@ class ScopusSearch(SearchSource):
         return rows
 
     def _full_query(self, core: str, ctx: SearchContext) -> str:
-        issn_part = " OR ".join(ctx.issns)
-        return (
-            f"{core} AND ISSN({issn_part}) "
+        year_filter = (
             f"AND PUBYEAR > {ctx.from_year - 1} AND PUBYEAR < {ctx.to_year + 1}"
         )
+        if ctx.issns:
+            issn_part = " OR ".join(ctx.issns)
+            return f"{core} AND ISSN({issn_part}) {year_filter}"
+        return f"{core} {year_filter}"

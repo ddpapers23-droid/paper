@@ -46,11 +46,12 @@ class OpenAlexSearch(SearchSource):
 
     def _build_filter(self, issns: list[str], from_year: int,
                       to_year: int) -> str:
-        return (
-            f"primary_location.source.issn:{'|'.join(issns)},"
-            f"publication_year:{from_year}-{to_year},"
-            f"type:article"
-        )
+        parts = []
+        if issns:
+            parts.append(f"primary_location.source.issn:{'|'.join(issns)}")
+        parts.append(f"publication_year:{from_year}-{to_year}")
+        parts.append("type:article")
+        return ",".join(parts)
 
     def _fetch_all(self, query: str, filter_str: str, mailto: str) -> list[dict]:
         all_works: list[dict] = []
