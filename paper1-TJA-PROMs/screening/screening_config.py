@@ -54,16 +54,21 @@ ML_AI_TERMS = [
     "xgboost",
     "predictive model",
     "prediction model",
-    # v2 additions, to match the search_config.py v2 query's ML/AI block
-    "logistic regression",
+    # v2 additions, to match the search_config.py v2 query's ML/AI block.
+    # Deliberately excludes plain-biostatistics terms (logistic regression,
+    # regression model, multivariable/multivariate model or analysis) —
+    # those describe conventional regression, not AI/ML, and inflated
+    # PRELIM_INCLUDE with non-ML outcomes papers when first tried.
     "classification model",
     "supervised learning",
-    "ensemble",
+    "ensemble learning",
     "natural language processing",
     "nlp",
-    "regression model",
-    "multivariable model",
-    "multivariate model",
+    "support vector machine",
+    "decision tree",
+    "convolutional neural network",
+    "recurrent neural network",
+    "lstm",
 ]
 
 PROM_TERMS = [
