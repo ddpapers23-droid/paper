@@ -14,6 +14,44 @@ hip arthroplasty (THA).
 - **Search date range:** 2010-01-01 to 2026-05-20
 - **PROSPERO ID:** [PENDING - add when received]
 
+## Current stage
+
+**Search and preliminary screening complete for both query versions; entering
+dual-reviewer Rayyan screening.**
+
+Two PubMed query versions exist for provenance/PRISMA-flow purposes — v1 was
+the original `[tiab]`-only string, v2 added MeSH terms plus expanded
+PROM/ML-AI term blocks for a sensitivity check (see `searches/search_config.py`
+for both query strings, and `searches/compare_versions.py` for the funnel
+comparison). **v2 is the working search** — the v1 files are kept only as the
+sensitivity-analysis baseline.
+
+PRISMA-style funnel so far:
+
+| Stage | Count |
+|---|---|
+| PubMed v1 raw | 75 |
+| PubMed v2 raw | 713 |
+| After deduplication (v2) | 711 |
+| PRELIM_INCLUDE | 154 |
+| PRELIM_EXCLUDE | 101 |
+| NEEDS_REVIEW | 456 |
+| — of which missing an obvious performance metric (within INCLUDE) | 63 |
+| **Total entering Rayyan** | **711** |
+
+`screening_config.py`'s classification keyword lists were revised twice
+against the v2 search terms: first expanded to match v2's wider vocabulary
+(which over-included — PRELIM_INCLUDE hit 553/711, because plain-regression
+biostatistics terms like "logistic regression" aren't actually AI/ML), then
+tightened by removing those biostatistics terms, landing PRELIM_INCLUDE at
+154 — the current, confirmed number above.
+
+**Next step:** import `screening/rayyan_import_v2.csv` into Rayyan for the
+real two-reviewer screen, prioritizing the 456 NEEDS_REVIEW + the 63
+missing-metric-flagged PRELIM_INCLUDE records. Once both reviewers have
+screened, use `screening/kappa_calculator.py` to check inter-rater agreement
+and generate the disagreement/adjudication list.
+
 ## Folder structure
 
 ```
@@ -28,35 +66,54 @@ paper1-TJA-PROMs/
 
 ## Scripts
 
-Run in this order:
+Core pipeline, run in this order (append `--version v2` / explicit
+`--input`/`--output` flags to target the v2 files — see "Current stage"):
 
 1. **`searches/search_config.py`** — Queries PubMed via NCBI E-utilities
-   (esearch + efetch) with the project's Boolean search string, filtered to
-   the 2010–2026 date window. Writes `searches/results_pubmed.csv`
-   (PMID, Title, Authors, Year, Journal, Abstract). Max 500 results. No API
-   key required at this volume; set `NCBI_API_KEY` to raise the rate limit.
+   (esearch + efetch), filtered to the 2010–2026 date window. `--version v1`
+   (default) is the original `[tiab]`-only string → `results_pubmed.csv`;
+   `--version v2` adds MeSH terms plus expanded PROM/ML-AI term blocks →
+   `results_pubmed_v2.csv`. Fields: PMID, Title, Authors, Year, Journal,
+   Abstract. Default max 500 results — check the printed "Total records
+   matching query" against `--max-results`; if the query matched more than
+   that, re-run with `--max-results` raised to the full count, or the fetch
+   silently truncates. No API key required at this volume; set
+   `NCBI_API_KEY` to raise the rate limit.
 
-2. **`searches/dedup.py`** — Deduplicates `results_pubmed.csv`: exact PMID
+2. **`searches/dedup.py`** — Deduplicates a raw results CSV: exact PMID
    match first, then fuzzy title match (90% similarity threshold via
-   rapidfuzz/difflib). Writes `searches/results_deduped.csv`.
+   rapidfuzz/difflib). `--input`/`--output` default to the v1 filenames.
 
-3. **`screening/screening_config.py`** — Applies keyword-based
-   inclusion/exclusion logic to `results_deduped.csv` and tags each record
+3. **`searches/compare_versions.py`** — Funnel comparison between the v1 and
+   v2 searches (total → unique → PRELIM_INCLUDE for each, plus which PMIDs
+   v2 turned up that v1 didn't). Read-only — run after both versions have
+   been searched, deduped, and screened.
+
+4. **`screening/screening_config.py`** — Applies keyword-based
+   inclusion/exclusion logic to a deduped CSV and tags each record
    `PRELIM_INCLUDE` / `PRELIM_EXCLUDE` / `NEEDS_REVIEW`. Also flags
    PRELIM_INCLUDE records that don't mention an obvious performance metric
    (AUC/sensitivity/specificity/accuracy/R²/c-statistic) in the abstract, and
    adds blank `Reviewer_1_Decision` / `Reviewer_2_Decision` / `Conflict`
-   columns for the two-reviewer human screen. Writes
-   `screening/prelim_screen.csv`. This is a triage aid, not a replacement for
-   dual human screening.
+   columns for the two-reviewer human screen. This is a triage aid, not a
+   replacement for dual human screening. The keyword lists cover both the
+   v1 and v2 search vocabularies (tightened once already — see "Current
+   stage" for why plain-regression biostatistics terms were deliberately
+   left out of the ML/AI list).
 
-4. **`screening/rayyan_formatter.py`** — Converts `prelim_screen.csv` into
+5. **`screening/rayyan_formatter.py`** — Converts a screened CSV into
    Rayyan's bulk-import CSV format (key, title, authors, journal, year,
-   volume, pages, abstract, url). Writes `screening/rayyan_import.csv`.
-   `volume`/`pages` are blank — PubMed esearch/efetch output doesn't collect
-   them.
+   volume, pages, abstract, url). `volume`/`pages` are blank — PubMed
+   esearch/efetch output doesn't collect them.
 
-5. **`extraction/extraction_template.py`** — Generates
+6. **`screening/kappa_calculator.py`** — Computes Cohen's kappa between two
+   reviewers' Rayyan screening decisions once the dual human screen is done.
+   Handles both a single combined Rayyan export (decisions parsed out of the
+   `notes` column's `RAYYAN-INCLUSION` field) and two separate per-reviewer
+   files. Writes `disagreements.csv` (rows where reviewers disagreed, or
+   where one reviewer hasn't decided yet) for adjudication.
+
+7. **`extraction/extraction_template.py`** — Generates
    `extraction/data_extraction.xlsx`: a "Data Extraction" sheet (27 columns
    including AUC/Sensitivity/Specificity/Accuracy/R², PROBAST Domains 1–4,
    Overall PROBAST Risk, with dropdown validation on Joint/External
