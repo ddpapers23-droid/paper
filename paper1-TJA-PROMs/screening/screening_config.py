@@ -54,6 +54,16 @@ ML_AI_TERMS = [
     "xgboost",
     "predictive model",
     "prediction model",
+    # v2 additions, to match the search_config.py v2 query's ML/AI block
+    "logistic regression",
+    "classification model",
+    "supervised learning",
+    "ensemble",
+    "natural language processing",
+    "nlp",
+    "regression model",
+    "multivariable model",
+    "multivariate model",
 ]
 
 PROM_TERMS = [
@@ -68,6 +78,20 @@ PROM_TERMS = [
     "prom",
     "functional outcome",
     "mcid",
+    # v2 additions, to match the search_config.py v2 query's PROM block
+    "oxford knee score",
+    "oxford hip score",
+    "eq5d",
+    "sf-36",
+    "sf36",
+    "visual analogue scale",
+    "vas",
+    "pain score",
+    "patient satisfaction",
+    "quality of life",
+    "quickdash",
+    "forgotten joint score",
+    "fjs",
 ]
 
 JOINT_TERMS = [
@@ -78,6 +102,11 @@ JOINT_TERMS = [
     "knee replacement",
     "hip replacement",
     "arthroplasty",
+    # v2 additions, to match the search_config.py v2 query's joint block
+    "knee arthroplasty",
+    "hip arthroplasty",
+    "joint replacement",
+    "joint arthroplasty",
 ]
 
 EXCLUSION_TERMS = [
@@ -92,6 +121,21 @@ EXCLUSION_TERMS = [
     "periprosthetic infection",
     "pji",
     "venous thromboembolism",
+    # v2 additions, to hold precision as the include-side terms widen
+    "shoulder arthroplasty",
+    "shoulder replacement",
+    "ankle arthroplasty",
+    "elbow arthroplasty",
+    "spine",
+    "spinal",
+    "vertebral",
+    "fracture fixation",
+    "trauma",
+    "animal model",
+    "rat model",
+    "mouse model",
+    "in vitro",
+    "biomechanical study",
 ]
 
 PERFORMANCE_METRIC_TERMS = [
