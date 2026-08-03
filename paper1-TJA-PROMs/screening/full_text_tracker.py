@@ -61,8 +61,12 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
-IDCONV_URL = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/"
+IDCONV_URL = "https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/"
 IDCONV_BATCH_SIZE = 200
+IDCONV_HEADERS = {
+    "User-Agent": "academic-research-plugin-full-text-tracker/1.0 (systematic review pipeline; contact via GitHub repo)",
+    "Accept": "application/json",
+}
 
 COLUMNS = [
     "PMID",
@@ -133,7 +137,7 @@ def check_pmc_availability(pmids: list[str]) -> dict[str, bool]:
         if api_key:
             params["api_key"] = api_key
 
-        resp = requests.get(IDCONV_URL, params=params, timeout=30)
+        resp = requests.get(IDCONV_URL, params=params, headers=IDCONV_HEADERS, timeout=30)
         resp.raise_for_status()
         data = resp.json()
 
