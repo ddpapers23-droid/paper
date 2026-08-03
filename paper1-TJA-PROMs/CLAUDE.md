@@ -113,7 +113,25 @@ Core pipeline, run in this order (append `--version v2` / explicit
    files. Writes `disagreements.csv` (rows where reviewers disagreed, or
    where one reviewer hasn't decided yet) for adjudication.
 
-7. **`extraction/extraction_template.py`** — Generates
+7. **`screening/full_text_tracker.py`** — Takes the final Include list
+   exported from Rayyan (CSV) and generates
+   `screening/fulltext_tracker.xlsx`: one row per study with columns to
+   confirm ML algorithm / PROM / performance metric during full-text
+   review, plus a Full Text Decision (Include/Exclude) and Exclusion
+   Reason. Flags records with no PubMed Central full-text link as "Needs
+   retrieval" — checks the CSV's `pmc_id` column first, then falls back to
+   a live NCBI ID Converter lookup for any PMID missing one (PubMed
+   E-utilities imports usually don't carry `pmc_id`, so the live lookup is
+   normally what actually populates this flag; `--no-network` skips it).
+   Warns if the input doesn't look like a filtered Include-only export.
+
+8. **`figures/prisma_diagram.py`** — Renders the PRISMA 2020 flow diagram
+   (Identification → Screening → Eligibility → Included) via matplotlib.
+   Identification-stage numbers default to the final v2 search figures;
+   everything from `--excluded-screening` onward defaults to "TBD" until
+   the real Rayyan dual-reviewer/adjudication numbers exist.
+
+9. **`extraction/extraction_template.py`** — Generates
    `extraction/data_extraction.xlsx`: a "Data Extraction" sheet (27 columns
    including AUC/Sensitivity/Specificity/Accuracy/R², PROBAST Domains 1–4,
    Overall PROBAST Risk, with dropdown validation on Joint/External
