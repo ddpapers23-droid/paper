@@ -24,10 +24,16 @@ availability is checked two ways: first the CSV's own `pmc_id` column
 whose metadata came in via PubMed E-utilities rather than Rayyan's own
 PubMed connector, since E-utilities esearch/efetch don't return PMC
 IDs. So for any row without a `pmc_id`, this script also does a live
-lookup against NCBI's ID Converter API (same request pattern as
-search_config.py) to check for a real PMC full-text link before
-flagging it. Use --no-network to skip the live lookup and rely on the
-CSV's `pmc_id` column alone (faster, but will over-flag).
+lookup via NCBI ELink (dbfrom=pubmed, db=pmc) on eutils.ncbi.nlm.nih.gov
+— the same domain and request pattern search_config.py already uses
+successfully. (An earlier version of this script used the PMC ID
+Converter API on pmc.ncbi.nlm.nih.gov instead; that domain 403's
+Python's requests client outright — looks like bot/WAF protection —
+so it's not used here.) One ELink request per PMID, to avoid relying
+on undocumented assumptions about how ELink batches/merges linksets
+for multiple input IDs in one request. Use --no-network to skip the
+live lookup and rely on the CSV's `pmc_id` column alone (faster, but
+will over-flag).
 
 Expects a standard Rayyan CSV export (key, title, year, journal,
 pubmed_id, pmc_id, notes, url, ...). If `pubmed_id` is blank for a row,
@@ -61,12 +67,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
-IDCONV_URL = "https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/"
-IDCONV_BATCH_SIZE = 200
-IDCONV_HEADERS = {
-    "User-Agent": "academic-research-plugin-full-text-tracker/1.0 (systematic review pipeline; contact via GitHub repo)",
-    "Accept": "application/json",
-}
+ELINK_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi"
 
 COLUMNS = [
     "PMID",
@@ -126,25 +127,38 @@ def _warn_if_not_all_included(rows: list[dict[str, str]]) -> None:
 
 
 def check_pmc_availability(pmids: list[str]) -> dict[str, bool]:
-    """Look up which PMIDs have a real PMC full-text link via NCBI's ID Converter API."""
+    """Look up which PMIDs have a real PMC full-text link via NCBI ELink.
+
+    One request per PMID rather than a batched multi-ID call: ELink's
+    behavior when merging linksets for multiple input IDs in a single
+    request isn't something to rely on without being able to verify it
+    live, and getting a PMID-to-PMC mapping wrong silently is worse than
+    373 slow-but-unambiguous requests.
+    """
     api_key = os.environ.get("NCBI_API_KEY")
     delay = 0.11 if api_key else 0.35
     available: dict[str, bool] = {}
 
-    for start in range(0, len(pmids), IDCONV_BATCH_SIZE):
-        batch = pmids[start : start + IDCONV_BATCH_SIZE]
-        params = {"ids": ",".join(batch), "format": "json"}
+    for i, pmid in enumerate(pmids, start=1):
+        params = {"dbfrom": "pubmed", "db": "pmc", "id": pmid, "retmode": "json"}
         if api_key:
             params["api_key"] = api_key
 
-        resp = requests.get(IDCONV_URL, params=params, headers=IDCONV_HEADERS, timeout=30)
+        resp = requests.get(ELINK_URL, params=params, timeout=30)
         resp.raise_for_status()
         data = resp.json()
 
-        for record in data.get("records", []):
-            pmid = record.get("pmid", "")
-            if pmid:
-                available[pmid] = bool(record.get("pmcid"))
+        linksets = data.get("linksets", [])
+        has_pmc = False
+        if linksets:
+            for linksetdb in linksets[0].get("linksetdbs", []):
+                if linksetdb.get("dbto") == "pmc" and linksetdb.get("links"):
+                    has_pmc = True
+                    break
+        available[pmid] = has_pmc
+
+        if i % 50 == 0 or i == len(pmids):
+            print(f"  ...checked {i}/{len(pmids)}")
 
         time.sleep(delay)
 
@@ -173,7 +187,7 @@ def load_records(input_path: Path, use_network: bool) -> list[dict[str, str]]:
     if use_network:
         lookup_pmids = [r["PMID"] for r in parsed if not r["has_pmc_id_in_csv"] and r["PMID"]]
         if lookup_pmids:
-            print(f"Checking PMC full-text availability for {len(lookup_pmids)} PMIDs via NCBI ID Converter...")
+            print(f"Checking PMC full-text availability for {len(lookup_pmids)} PMIDs via NCBI ELink (one request per PMID, this may take a few minutes)...")
             try:
                 pmc_available = check_pmc_availability(lookup_pmids)
             except requests.exceptions.RequestException as exc:
